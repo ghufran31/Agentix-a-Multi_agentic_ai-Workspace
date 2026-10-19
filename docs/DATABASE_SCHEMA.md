@@ -240,3 +240,9 @@ Its `created_at` has application-side and database-side current timestamp
 defaults. Agent records are metadata only and do not imply autonomous
 execution, tool use, or AI workflow processing. Django auth and Simple JWT
 tables remain framework-managed and are outside this business schema.
+
+The `projects` app implements only the approved `projects`,
+`project_requirements`, and `project_members` tables. Project-member rows
+include the approved check constraint requiring exactly one of `employee_id`
+and `ai_agent_id`; the API additionally requires that selected candidate to
+belong to the project's company. Recommendations remain unimplemented.

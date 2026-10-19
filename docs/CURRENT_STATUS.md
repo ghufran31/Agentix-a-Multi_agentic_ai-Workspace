@@ -40,6 +40,12 @@ Updated: 2026-10-19
   authenticated, company-scoped agent metadata CRUD APIs.
 - Agent records do not execute autonomous tasks, call tools, or run AI
   workflows.
+- The `projects` app implements only the approved `projects`,
+  `project_requirements`, and `project_members` tables and authenticated,
+  company-scoped CRUD APIs. Requirements and members are nested under their
+  projects.
+- Project-member assignments must contain exactly one employee or AI agent,
+  and the candidate must belong to the same company as the project.
 - Focused accounts API tests have been added.
 - The exact approved DBML is recorded in `docs/DATABASE_SCHEMA.md`.
 
@@ -122,10 +128,22 @@ Updated: 2026-10-19
   existing PostgreSQL `test_Agentix` test database, which was preserved.
 - Both agents routes resolved successfully, and the configured database
   remains PostgreSQL `Agentix`.
+- `python manage.py check`: passed after adding projects; no issues reported.
+- `python manage.py makemigrations --check --dry-run`: passed with no model
+  changes detected.
+- `python manage.py migrate --noinput`: applied
+  `projects.0001_initial` to PostgreSQL `Agentix`; `showmigrations projects`
+  reports the migration applied.
+- `python manage.py test projects agents workforce companies accounts
+  documents integrations --verbosity 2 --keepdb`: all 91 tests passed
+  against the existing PostgreSQL `test_Agentix` test database, which was
+  preserved.
+- Project, requirement, and member route patterns resolved in the tests.
+- Confirmed the configured database engine is PostgreSQL and its name is
+  `Agentix`.
 
 ## Not implemented
 
-Projects, recommendations, project assignments, and the frontend remain
-planned. The next development step is to present the verified agents
-implementation to the project owner and wait for approval before implementing
-another app.
+Recommendations and the frontend remain planned. The next development step
+is to present the verified projects implementation to the project owner and
+wait for approval before implementing another app.

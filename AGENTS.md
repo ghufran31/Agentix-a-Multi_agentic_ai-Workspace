@@ -28,8 +28,7 @@ Before changing the project, read `README.md` and all relevant documents under
 The Django `accounts` app implements registration, JWT login and refresh,
 refresh-token blacklisting on logout, and an authenticated safe profile
 endpoint. The `companies` app implements only the approved `companies` and
-`company_users` tables and their requested APIs. All other business features
-in the DBML remain planned, not implemented. The `workforce` app implements
+`company_users` tables and their requested APIs. The `workforce` app implements
 only departments, employees, employee AI profiles, skills, and employee
 skills. The `documents` app implements only company document metadata and
 the approved `company_documents` table; it does not upload or store files.
@@ -38,6 +37,8 @@ metadata in the approved `connections` table; it does not authenticate with
 external providers or store their credentials. Account registration must not
 create a company. The `agents` app implements only company-scoped agent
 records and metadata in the approved `ai_agents` table; agent records do not
-execute autonomous tasks, call tools, or run AI workflows. After the approved
-agents work is complete, wait for the project owner's approval before
-starting another app.
+execute autonomous tasks, call tools, or run AI workflows. The `projects`
+app implements only projects, requirements, and project-member assignments
+from the approved schema. Recommendations remain unimplemented. After the
+approved projects work is complete, wait for the project owner's approval
+before starting another app.

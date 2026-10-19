@@ -15,13 +15,16 @@ workspace. Development is being delivered one app at a time.
 - Company-scoped document metadata CRUD under `/api/v1/documents/`.
 - Company-scoped connection metadata CRUD under `/api/v1/integrations/`.
 - Company-scoped AI agent metadata CRUD under `/api/v1/agents/`.
+- Company-scoped projects and nested requirements/member assignments under
+  `/api/v1/projects/`.
 - PostgreSQL configuration through environment variables.
 - Refresh-token rotation and blacklist support.
 
 No business app beyond `companies`, `workforce`, `documents`, `integrations`,
-and `agents` is implemented. Agent records are metadata only: they do not
-execute tasks, call tools, or run AI workflows. Account registration creates
-only a Django user. The approved schema is documented in
+`agents`, and `projects` is implemented. Agent records are metadata only:
+they do not execute tasks, call tools, or run AI workflows. Recommendations
+remain unimplemented. Account registration creates only a Django user. The
+approved schema is documented in
 [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) and must not be changed
 without approval.
 
@@ -67,9 +70,9 @@ python manage.py runserver
 ```
 
 The app migrations create only the business tables implemented from the
-approved schema: companies, workforce, documents, connections, and AI agent
-metadata. The `accounts` app has no models and registration does not create a
-company.
+approved schema: companies, workforce, documents, connections, AI agent
+metadata, projects, project requirements, and project members. The
+`accounts` app has no models and registration does not create a company.
 
 ## Accounts API
 
@@ -144,15 +147,24 @@ tools, or run AI workflows. Members may read agents in their companies;
 owners, admins, and managers may create, update, and delete them. See
 [the agents API reference](docs/modules/agents.md) for routes and fields.
 
+## Projects API
+
+Projects are scoped to member companies. Owners, admins, and managers may
+create, update, and delete; company members may read. Requirements and project
+members are nested under their project. Project-member assignments must
+reference exactly one employee or AI agent, and the selected record must
+belong to the project's company. See
+[the projects API reference](docs/modules/projects.md) for routes and fields.
+
 ## Tests and migration checks
 
-Run the accounts tests against the configured PostgreSQL test database:
+Run the current app suite against the configured PostgreSQL test database:
 
 ```powershell
 cd agentix_backend
-python manage.py test agents companies accounts workforce documents integrations
+python manage.py test projects agents workforce companies accounts documents integrations
 python manage.py makemigrations --check --dry-run
-python manage.py showmigrations auth token_blacklist companies workforce documents integrations agents
+python manage.py showmigrations auth token_blacklist companies workforce documents integrations agents projects
 ```
 
 The test runner creates and tears down its own temporary test database; it
@@ -170,6 +182,7 @@ does not delete the configured development database.
 - [Documents API details](docs/modules/documents.md)
 - [Integrations API details](docs/modules/integrations.md)
 - [Agents API details](docs/modules/agents.md)
+- [Projects API details](docs/modules/projects.md)
 
 Other future apps are not authorized by this implementation. Wait for the
 project owner's approval before starting another app.

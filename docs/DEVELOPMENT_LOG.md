@@ -232,3 +232,34 @@
   existing PostgreSQL `test_Agentix` test database; it was preserved.
 - Both agent URL patterns resolved successfully.
 - No projects, recommendations, or other unapproved apps/tables were added.
+
+## 2026-10-19 — Projects app
+
+### Changes
+
+- Added only the approved `Project`, `ProjectRequirement`, and `ProjectMember`
+  models mapped to their exact DBML table names and existing `Company`,
+  `Employee`, and `AIAgent` model classes.
+- Added authenticated project CRUD and nested project requirement and member
+  CRUD routes under `/api/v1/projects/`.
+- Scoped project and nested-resource queries to the user's company
+  memberships. Owners, admins, and managers can write; members can read.
+- Validated that a project member references exactly one employee or AI
+  agent, that the candidate belongs to the project's company, and that
+  company changes cannot invalidate existing project-member assignments.
+- Added the initial migration and project API tests. Recommendations remain
+  unimplemented.
+
+### Verification
+
+- `python manage.py check`: passed with no issues.
+- `python manage.py makemigrations --check --dry-run`: passed with no
+  ungenerated model changes.
+- `python manage.py migrate --noinput`: applied `projects.0001_initial` to
+  PostgreSQL `Agentix`; the migration is recorded as applied.
+- `python manage.py test projects agents workforce companies accounts
+  documents integrations --verbosity 2 --keepdb`: all 91 tests passed
+  against the existing PostgreSQL `test_Agentix` test database; it was
+  preserved.
+- Project, requirement, and member route patterns resolved in the tests.
+- Confirmed the configured database remains PostgreSQL `Agentix`.

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'documents',
     'integrations',
     'agents',
+    'projects',
 ]
 
 MIDDLEWARE = [
