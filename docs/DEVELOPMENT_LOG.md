@@ -247,8 +247,7 @@
 - Validated that a project member references exactly one employee or AI
   agent, that the candidate belongs to the project's company, and that
   company changes cannot invalidate existing project-member assignments.
-- Added the initial migration and project API tests. Recommendations remain
-  unimplemented.
+- Added the initial migration and project API tests.
 
 ### Verification
 
@@ -263,3 +262,35 @@
   preserved.
 - Project, requirement, and member route patterns resolved in the tests.
 - Confirmed the configured database remains PostgreSQL `Agentix`.
+
+## 2026-10-19 — Recommendations app
+
+### Changes
+
+- Added only the approved `Recommendation` model and `recommendations` table,
+  referencing the existing `Project`, `Employee`, and `AIAgent` models.
+- Added database and serializer validation requiring exactly one employee
+  or AI-agent target.
+- Added authenticated list/create and detail/retrieve/update/delete routes,
+  plus a project-scoped recommendation listing route.
+- Scoped all record and project queries through company membership. Owners,
+  admins, and managers can write; members can read. Candidate targets are
+  checked against the project's company.
+- The app stores recommendation records only; no recommendation-generation
+  or AI-scoring algorithm was added.
+- Added the initial migration, API tests, and module documentation.
+
+### Verification
+
+- `python manage.py check`: passed with no issues.
+- `python manage.py makemigrations --check --dry-run`: passed with no
+  ungenerated model changes.
+- `python manage.py migrate --noinput`: applied
+  `recommendations.0001_initial` to PostgreSQL `Agentix`.
+- `python manage.py test recommendations projects agents workforce companies
+  accounts documents integrations --verbosity 2 --keepdb`: all 108 tests
+  passed against the existing PostgreSQL `test_Agentix` test database; it was
+  preserved.
+- Recommendation list, detail, and project-scoped list routes resolved in
+  the tests.
+- Confirmed the configured database is PostgreSQL `Agentix`.

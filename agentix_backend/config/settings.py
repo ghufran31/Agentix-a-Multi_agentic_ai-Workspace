@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'integrations',
     'agents',
     'projects',
+    'recommendations',
 ]
 
 MIDDLEWARE = [

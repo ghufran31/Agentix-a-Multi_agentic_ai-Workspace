@@ -245,4 +245,11 @@ The `projects` app implements only the approved `projects`,
 `project_requirements`, and `project_members` tables. Project-member rows
 include the approved check constraint requiring exactly one of `employee_id`
 and `ai_agent_id`; the API additionally requires that selected candidate to
-belong to the project's company. Recommendations remain unimplemented.
+belong to the project's company.
+
+The `recommendations` app implements only the approved `recommendations`
+table, including the database check constraint requiring exactly one of
+`employee_id` and `ai_agent_id`. Its API validates same-company membership
+between the selected target and the recommendation's project. It stores
+recommendation records only and does not generate recommendations or perform
+AI scoring.

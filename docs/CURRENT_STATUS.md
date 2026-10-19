@@ -46,6 +46,11 @@ Updated: 2026-10-19
   projects.
 - Project-member assignments must contain exactly one employee or AI agent,
   and the candidate must belong to the same company as the project.
+- The `recommendations` app implements only the approved `recommendations`
+  table and authenticated company-scoped record APIs. It validates and
+  database-enforces exactly one same-company employee or AI agent target.
+- Recommendation records are stored as supplied; no generation or AI scoring
+  algorithm is implemented.
 - Focused accounts API tests have been added.
 - The exact approved DBML is recorded in `docs/DATABASE_SCHEMA.md`.
 
@@ -141,9 +146,23 @@ Updated: 2026-10-19
 - Project, requirement, and member route patterns resolved in the tests.
 - Confirmed the configured database engine is PostgreSQL and its name is
   `Agentix`.
+- `python manage.py check`: passed after adding recommendations; no issues
+  reported.
+- `python manage.py makemigrations --check --dry-run`: passed with no model
+  changes detected.
+- `python manage.py migrate --noinput`: applied
+  `recommendations.0001_initial` to PostgreSQL `Agentix`.
+- `python manage.py test recommendations projects agents workforce companies
+  accounts documents integrations --verbosity 2 --keepdb`: all 108 tests
+  passed against the existing PostgreSQL `test_Agentix` test database, which
+  was preserved.
+- Recommendation list, detail, and project-scoped list routes resolved in
+  the test suite.
+- Confirmed the configured database engine is PostgreSQL and its name is
+  `Agentix`.
 
 ## Not implemented
 
-Recommendations and the frontend remain planned. The next development step
-is to present the verified projects implementation to the project owner and
-wait for approval before implementing another app.
+The frontend remains planned. The next step is to present the verified
+recommendations implementation to the project owner and wait for approval
+before starting another app.

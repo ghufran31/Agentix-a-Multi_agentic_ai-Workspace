@@ -39,6 +39,7 @@ create a company. The `agents` app implements only company-scoped agent
 records and metadata in the approved `ai_agents` table; agent records do not
 execute autonomous tasks, call tools, or run AI workflows. The `projects`
 app implements only projects, requirements, and project-member assignments
-from the approved schema. Recommendations remain unimplemented. After the
-approved projects work is complete, wait for the project owner's approval
-before starting another app.
+from the approved schema. The `recommendations` app stores company-scoped
+recommendation records only; it does not generate recommendations or run an
+AI scoring algorithm. After the approved recommendations work is complete,
+wait for the project owner's approval before starting another app.
