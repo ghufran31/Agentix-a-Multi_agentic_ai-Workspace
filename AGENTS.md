@@ -1,0 +1,36 @@
+# Instructions for AI agents
+
+Before changing the project, read `README.md` and all relevant documents under
+`docs/`, especially `docs/ARCHITECTURE.md`,
+`docs/DATABASE_SCHEMA.md`, `docs/CURRENT_STATUS.md`, and
+`docs/DEVELOPMENT_LOG.md`.
+
+## Required workflow
+
+1. Implement one app at a time, and only the app currently approved by the
+   project owner.
+2. Preserve the approved schema in `docs/DATABASE_SCHEMA.md` exactly. Do not
+   invent or alter business tables, fields, types, constraints, or relations.
+3. Reuse the existing Django project and settings. Do not overwrite unrelated
+   work or delete development data.
+4. Keep credentials and secret keys out of source code, logs, and committed
+   files. Use environment variables for local configuration.
+5. Write and run focused tests for each change. Report actual results and
+   disclose failures; never claim an unrun test passed.
+6. Update the relevant documentation and development log with implemented
+   behavior, verification results, and known issues.
+7. Review the final Git diff and leave unrelated changes untouched.
+8. After completing the currently approved app, stop and wait for the
+   project owner's approval before starting another app.
+
+## Current scope
+
+The Django `accounts` app implements registration, JWT login and refresh,
+refresh-token blacklisting on logout, and an authenticated safe profile
+endpoint. The `companies` app implements only the approved `companies` and
+`company_users` tables and their requested APIs. All other business features
+in the DBML remain planned, not implemented. The `workforce` app implements
+only departments, employees, employee AI profiles, skills, and employee
+skills. Account registration must not create a company. After the approved
+workforce work is complete, wait for the project owner's approval before
+starting another app.
