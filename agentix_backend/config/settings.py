@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'workforce',
     'documents',
     'integrations',
+    'agents',
 ]
 
 MIDDLEWARE = [

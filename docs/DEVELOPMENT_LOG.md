@@ -172,3 +172,63 @@
 - Both document URL patterns resolved successfully in the automated tests.
 - No integrations, agents, projects, recommendations, or other unapproved
   apps or business tables were added.
+
+## 2026-10-19 — Integrations app
+
+### Changes
+
+- Added only the approved `Connection` model mapped to the `connections`
+  table, including the company relation, provider metadata, `disconnected`
+  status default, and nullable `connected_at`.
+- Added authenticated connection list/create and detail/retrieve/update/delete
+  routes under `/api/v1/integrations/`.
+- Scoped reads to company members and writes to owners, admins, and managers.
+  Company IDs supplied on create/update must belong to a company where the
+  requester has a writable membership; inaccessible records return 404.
+- Limited this app to connection metadata. It does not establish or verify
+  external provider connections or store credentials, API keys, or tokens.
+- Added the initial migration, API tests, and integrations module
+  documentation.
+
+### Verification
+
+- `python manage.py check`: passed with no issues.
+- `python manage.py makemigrations --check --dry-run`: passed with no
+  ungenerated model changes.
+- `python manage.py migrate --noinput`: applied
+  `integrations.0001_initial` to PostgreSQL `Agentix`.
+- `python manage.py test integrations companies accounts workforce documents
+  --verbosity 2 --keepdb`: all 62 tests passed against the existing
+  PostgreSQL `test_Agentix` test database; it was preserved.
+- Both integration URL patterns resolved successfully.
+- No agents, projects, recommendations, or other unapproved apps/tables were
+  added.
+
+## 2026-10-19 — Agents app
+
+### Changes
+
+- Added only the approved `AIAgent` model mapped to `ai_agents`, with the
+  company relation, metadata fields, `active` status default, and
+  current-timestamp defaults.
+- Added authenticated agent list/create and detail/retrieve/update/delete
+  routes under `/api/v1/agents/`.
+- Scoped reads to company members and writes to owners, admins, and managers.
+  Company IDs supplied on create/update must belong to a company where the
+  requester has a writable membership; inaccessible records return 404.
+- Limited the app to agent records and metadata. It does not execute
+  autonomous tasks, call tools, run AI workflows, or handle credentials.
+- Added the initial migration, API tests, and agents module documentation.
+
+### Verification
+
+- `python manage.py check`: passed with no issues.
+- `python manage.py makemigrations --check --dry-run`: passed with no
+  ungenerated model changes.
+- `python manage.py migrate --noinput`: applied `agents.0001_initial` to
+  PostgreSQL `Agentix`.
+- `python manage.py test agents companies accounts workforce documents
+  integrations --verbosity 2 --keepdb`: all 75 tests passed against the
+  existing PostgreSQL `test_Agentix` test database; it was preserved.
+- Both agent URL patterns resolved successfully.
+- No projects, recommendations, or other unapproved apps/tables were added.

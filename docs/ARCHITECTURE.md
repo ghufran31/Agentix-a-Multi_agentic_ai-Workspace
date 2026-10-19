@@ -21,6 +21,13 @@
   memberships; owners, admins, and managers can write while members can read.
   The `file_path` field is metadata only and does not imply file upload or
   storage.
+- **Integrations API:** `agentix_backend/integrations` owns only the approved
+  `connections` table. Connection records are company-scoped, and provider
+  and status values are metadata only. The app does not authenticate with
+  external providers or store credentials.
+- **Agents API:** `agentix_backend/agents` owns only the approved `ai_agents`
+  table. Agent records are company-scoped metadata; they do not execute tasks,
+  call tools, or run AI workflows.
 - **Persistence configuration:** PostgreSQL remains the configured database;
   connection details and the Django secret key are read from environment
   variables.
@@ -39,8 +46,8 @@ writable only by owners, admins, and managers. No custom user table is defined.
 These domains correspond to the approved schema and remain planned for
 separate approval and one-app-at-a-time implementation:
 
-- **Company resources:** external connections.
-- **AI agents:** company-scoped agent records.
+- **Company resources:** none beyond the implemented documents and
+  integration metadata APIs.
 - **Projects:** projects and project requirements.
 - **Recommendations and assignments:** candidate recommendations and project
   members with the approved exactly-one-candidate constraints.
@@ -51,18 +58,18 @@ alter the approved DBML.
 ## Request flow
 
 Requests enter through `config.urls`, which mounts the accounts URL
-configuration at `/api/v1/accounts/` and the companies URL configuration at
-`/api/v1/companies/` and the workforce URL configuration at
-`/api/v1/workforce/` and documents at `/api/v1/documents/`. Public
-registration and token endpoints use dedicated DRF views and serializers.
-Company, workforce, and document endpoints require JWT authentication.
-Company, workforce, and document querysets are scoped to the requesting
-user's membership. The profile and membership serializers expose only safe
-user fields.
+configuration at `/api/v1/accounts/`, companies at `/api/v1/companies/`,
+workforce at `/api/v1/workforce/`, documents at `/api/v1/documents/`, and
+integrations at `/api/v1/integrations/` and agents at `/api/v1/agents/`.
+Public registration and token endpoints use dedicated DRF views and
+serializers. Company, workforce, document, integrations, and agents endpoints
+require JWT authentication. Their querysets are scoped to the requesting
+user's company membership. The profile and membership serializers expose
+only safe user fields.
 
 ## Database boundary
 
 The approved DBML is preserved verbatim in [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md).
-The company, workforce, and documents migrations implement only their
-approved tables. Django auth and Simple JWT own their framework tables and
-migrations independently of that business schema.
+The company, workforce, documents, integrations, and agents migrations
+implement only their approved tables. Django auth and Simple JWT own their
+framework tables and migrations independently of that business schema.

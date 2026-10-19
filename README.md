@@ -13,12 +13,15 @@ workspace. Development is being delivered one app at a time.
 - Company-scoped CRUD for departments, employees, employee AI profiles,
   skills, and employee-skill assignments under `/api/v1/workforce/`.
 - Company-scoped document metadata CRUD under `/api/v1/documents/`.
+- Company-scoped connection metadata CRUD under `/api/v1/integrations/`.
+- Company-scoped AI agent metadata CRUD under `/api/v1/agents/`.
 - PostgreSQL configuration through environment variables.
 - Refresh-token rotation and blacklist support.
 
-No business app beyond `companies`, `workforce`, and `documents` is
-implemented. Account registration creates only a Django user. The approved
-schema is documented in
+No business app beyond `companies`, `workforce`, `documents`, `integrations`,
+and `agents` is implemented. Agent records are metadata only: they do not
+execute tasks, call tools, or run AI workflows. Account registration creates
+only a Django user. The approved schema is documented in
 [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) and must not be changed
 without approval.
 
@@ -54,8 +57,8 @@ default to `Agentix`, `postgres`, `localhost`, and `5432`, respectively.
 Process environment variables take precedence over values loaded from `.env`.
 The backend remains configured to use PostgreSQL.
 
-Apply Django's built-in authentication and Simple JWT blacklist migrations,
-then start the API:
+Apply Django's built-in authentication, Simple JWT blacklist, and app
+migrations, then start the API:
 
 ```powershell
 cd agentix_backend
@@ -63,8 +66,10 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-The migrations create the approved `companies` and `company_users` tables.
-The `accounts` app has no models and registration does not create a company.
+The app migrations create only the business tables implemented from the
+approved schema: companies, workforce, documents, connections, and AI agent
+metadata. The `accounts` app has no models and registration does not create a
+company.
 
 ## Accounts API
 
@@ -121,15 +126,33 @@ create, update, and delete document records. The API stores the schema's
 `file_path` text as metadata only; it does not upload or store files. See
 [the documents API reference](docs/modules/documents.md) for exact routes.
 
+## Integrations API
+
+Integration records store provider/account labels and connection status
+metadata only. They do not verify or establish an external connection and do
+not accept or return credentials, API keys, tokens, or secrets. All endpoints
+require authentication; company members can read, and owners, admins, and
+managers can write. See
+[the integrations API reference](docs/modules/integrations.md) for routes and
+request fields.
+
+## Agents API
+
+Agent records store company, name, type, description, capabilities, status,
+and creation time as metadata. They do not execute autonomous tasks, call
+tools, or run AI workflows. Members may read agents in their companies;
+owners, admins, and managers may create, update, and delete them. See
+[the agents API reference](docs/modules/agents.md) for routes and fields.
+
 ## Tests and migration checks
 
 Run the accounts tests against the configured PostgreSQL test database:
 
 ```powershell
 cd agentix_backend
-python manage.py test documents companies accounts workforce
+python manage.py test agents companies accounts workforce documents integrations
 python manage.py makemigrations --check --dry-run
-python manage.py showmigrations auth token_blacklist companies workforce documents
+python manage.py showmigrations auth token_blacklist companies workforce documents integrations agents
 ```
 
 The test runner creates and tears down its own temporary test database; it
@@ -145,6 +168,8 @@ does not delete the configured development database.
 - [Companies API details](docs/modules/companies.md)
 - [Workforce API details](docs/modules/workforce.md)
 - [Documents API details](docs/modules/documents.md)
+- [Integrations API details](docs/modules/integrations.md)
+- [Agents API details](docs/modules/agents.md)
 
 Other future apps are not authorized by this implementation. Wait for the
 project owner's approval before starting another app.

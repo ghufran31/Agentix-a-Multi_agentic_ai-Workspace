@@ -33,6 +33,11 @@ in the DBML remain planned, not implemented. The `workforce` app implements
 only departments, employees, employee AI profiles, skills, and employee
 skills. The `documents` app implements only company document metadata and
 the approved `company_documents` table; it does not upload or store files.
-Account registration must not create a company. After the approved documents
-work is complete, wait for the project owner's approval before starting
-another app.
+The `integrations` app implements only connection records and status
+metadata in the approved `connections` table; it does not authenticate with
+external providers or store their credentials. Account registration must not
+create a company. The `agents` app implements only company-scoped agent
+records and metadata in the approved `ai_agents` table; agent records do not
+execute autonomous tasks, call tools, or run AI workflows. After the approved
+agents work is complete, wait for the project owner's approval before
+starting another app.

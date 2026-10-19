@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/v1/workforce/', include('workforce.urls')),
     path('api/v1/documents/', include('documents.urls')),
     path('api/v1/integrations/', include('integrations.urls')),
+    path('api/v1/agents/', include('agents.urls')),
 ]

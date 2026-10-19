@@ -226,6 +226,17 @@ The `documents` app implements only the approved `company_documents` table
 using the exact DBML fields and relationships. `file_path` is stored as
 nullable text metadata only; the app does not upload or store files. Its
 `uploaded_at` field has both an application-side and database-side current
-timestamp default. No other business tables have been created. Django auth
-and Simple JWT tables remain framework-managed and are outside this business
-schema.
+timestamp default.
+
+The `integrations` app implements only the approved `connections` table with
+the DBML fields and relation. Its `status` defaults to `disconnected`, and
+`connected_at` is nullable. Provider status is metadata and does not prove
+that an external service connection was authenticated or verified. This app
+does not store credentials. No other business tables were added by the
+integrations app.
+
+The `agents` app implements only the approved `ai_agents` table and fields.
+Its `created_at` has application-side and database-side current timestamp
+defaults. Agent records are metadata only and do not imply autonomous
+execution, tool use, or AI workflow processing. Django auth and Simple JWT
+tables remain framework-managed and are outside this business schema.

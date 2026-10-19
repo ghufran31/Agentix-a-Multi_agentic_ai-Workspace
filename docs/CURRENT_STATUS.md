@@ -32,6 +32,14 @@ Updated: 2026-10-19
 - Company members may read their documents; owners, admins, and managers may
   create, update, and delete. `file_path` is metadata only; no file upload or
   storage implementation is included.
+- The `integrations` app implements only the approved `connections` table and
+  authenticated, company-scoped connection metadata CRUD APIs.
+- Connection records expose provider, account label, and status metadata only;
+  the app does not verify external connections or store credentials.
+- The `agents` app implements only the approved `ai_agents` table and
+  authenticated, company-scoped agent metadata CRUD APIs.
+- Agent records do not execute autonomous tasks, call tools, or run AI
+  workflows.
 - Focused accounts API tests have been added.
 - The exact approved DBML is recorded in `docs/DATABASE_SCHEMA.md`.
 
@@ -94,10 +102,30 @@ Updated: 2026-10-19
   `test_Agentix` test database, which was preserved.
 - Both documents routes resolved successfully in the automated tests.
 - Confirmed the configured database remains PostgreSQL `Agentix`.
+- `python manage.py check`: passed after adding integrations.
+- `python manage.py makemigrations --check --dry-run`: passed with no model
+  changes detected.
+- `python manage.py migrate --noinput`: applied
+  `integrations.0001_initial` to PostgreSQL `Agentix`.
+- `python manage.py test integrations companies accounts workforce documents
+  --verbosity 2 --keepdb`: all 62 tests passed against the existing
+  PostgreSQL `test_Agentix` test database, which was preserved.
+- Both integrations routes resolved successfully, and the configured
+  database remains PostgreSQL `Agentix`.
+- `python manage.py check`: passed after adding agents.
+- `python manage.py makemigrations --check --dry-run`: passed with no model
+  changes detected.
+- `python manage.py migrate --noinput`: applied `agents.0001_initial` to
+  PostgreSQL `Agentix`.
+- `python manage.py test agents companies accounts workforce documents
+  integrations --verbosity 2 --keepdb`: all 75 tests passed against the
+  existing PostgreSQL `test_Agentix` test database, which was preserved.
+- Both agents routes resolved successfully, and the configured database
+  remains PostgreSQL `Agentix`.
 
 ## Not implemented
 
-Connections, AI agents, projects, recommendations, project assignments, and
-the frontend remain planned. The next development step is to present the
-verified documents implementation to the project owner and wait for approval
-before implementing another app.
+Projects, recommendations, project assignments, and the frontend remain
+planned. The next development step is to present the verified agents
+implementation to the project owner and wait for approval before implementing
+another app.
