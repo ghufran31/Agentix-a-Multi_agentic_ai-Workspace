@@ -12,11 +12,13 @@ workspace. Development is being delivered one app at a time.
   owner-only updates, and member listing under `/api/v1/companies/`.
 - Company-scoped CRUD for departments, employees, employee AI profiles,
   skills, and employee-skill assignments under `/api/v1/workforce/`.
+- Company-scoped document metadata CRUD under `/api/v1/documents/`.
 - PostgreSQL configuration through environment variables.
 - Refresh-token rotation and blacklist support.
 
-No business app beyond `companies` and `workforce` is implemented. Account
-registration creates only a Django user. The approved schema is documented in
+No business app beyond `companies`, `workforce`, and `documents` is
+implemented. Account registration creates only a Django user. The approved
+schema is documented in
 [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) and must not be changed
 without approval.
 
@@ -111,15 +113,23 @@ employee-skill assignments require the employee and skill to belong to the
 same company. See [the workforce API reference](docs/modules/workforce.md)
 for exact routes and resource fields.
 
+## Documents API
+
+Document endpoints require authentication. Company members can list and
+retrieve their company's document metadata; owners, admins, and managers can
+create, update, and delete document records. The API stores the schema's
+`file_path` text as metadata only; it does not upload or store files. See
+[the documents API reference](docs/modules/documents.md) for exact routes.
+
 ## Tests and migration checks
 
 Run the accounts tests against the configured PostgreSQL test database:
 
 ```powershell
 cd agentix_backend
-python manage.py test workforce companies accounts
+python manage.py test documents companies accounts workforce
 python manage.py makemigrations --check --dry-run
-python manage.py showmigrations auth token_blacklist companies
+python manage.py showmigrations auth token_blacklist companies workforce documents
 ```
 
 The test runner creates and tears down its own temporary test database; it
@@ -134,6 +144,7 @@ does not delete the configured development database.
 - [Accounts API details](docs/modules/accounts.md)
 - [Companies API details](docs/modules/companies.md)
 - [Workforce API details](docs/modules/workforce.md)
+- [Documents API details](docs/modules/documents.md)
 
 Other future apps are not authorized by this implementation. Wait for the
 project owner's approval before starting another app.

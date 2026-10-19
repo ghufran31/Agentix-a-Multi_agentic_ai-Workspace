@@ -27,6 +27,11 @@ Updated: 2026-10-19
 - Workforce reads are membership-scoped; owners, admins, and managers may
   write. Employee-skill links are validated to keep both records in the same
   company.
+- The `documents` app implements only the approved `company_documents` table
+  and authenticated, company-scoped document metadata CRUD APIs.
+- Company members may read their documents; owners, admins, and managers may
+  create, update, and delete. `file_path` is metadata only; no file upload or
+  storage implementation is included.
 - Focused accounts API tests have been added.
 - The exact approved DBML is recorded in `docs/DATABASE_SCHEMA.md`.
 
@@ -79,10 +84,20 @@ Updated: 2026-10-19
 - `python manage.py showmigrations auth token_blacklist`: all listed auth and
   blacklist migrations are applied.
 - Resolved all five requested account paths to their expected URL names.
+- `python manage.py check`: passed after adding documents.
+- `python manage.py makemigrations --check --dry-run`: passed with no model
+  changes detected.
+- `python manage.py migrate --noinput`: applied
+  `documents.0001_initial` to PostgreSQL `Agentix`.
+- `python manage.py test documents companies accounts workforce --verbosity
+  2 --keepdb`: all 51 tests passed against the existing PostgreSQL
+  `test_Agentix` test database, which was preserved.
+- Both documents routes resolved successfully in the automated tests.
+- Confirmed the configured database remains PostgreSQL `Agentix`.
 
 ## Not implemented
 
-Documents, connections, AI agents, projects, recommendations, project
-assignments, and the frontend remain planned. The next development step is to
-present the verified workforce implementation to the project owner and wait
-for approval before implementing another app.
+Connections, AI agents, projects, recommendations, project assignments, and
+the frontend remain planned. The next development step is to present the
+verified documents implementation to the project owner and wait for approval
+before implementing another app.

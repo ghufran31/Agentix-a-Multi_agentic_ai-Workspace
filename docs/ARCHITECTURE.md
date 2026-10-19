@@ -16,6 +16,11 @@
   `employee_skills` tables. All querysets are company-scoped through the
   authenticated user's memberships. Owners, admins, and managers can write;
   members are read-only.
+- **Documents API:** `agentix_backend/documents` owns only the approved
+  `company_documents` table. Document records are scoped to company
+  memberships; owners, admins, and managers can write while members can read.
+  The `file_path` field is metadata only and does not imply file upload or
+  storage.
 - **Persistence configuration:** PostgreSQL remains the configured database;
   connection details and the Django secret key are read from environment
   variables.
@@ -31,10 +36,10 @@ writable only by owners, admins, and managers. No custom user table is defined.
 
 ## Planned, not implemented
 
-These domains correspond to the approved schema and require separate approval
-and one-app-at-a-time implementation:
+These domains correspond to the approved schema and remain planned for
+separate approval and one-app-at-a-time implementation:
 
-- **Company resources:** company documents and external connections.
+- **Company resources:** external connections.
 - **AI agents:** company-scoped agent records.
 - **Projects:** projects and project requirements.
 - **Recommendations and assignments:** candidate recommendations and project
@@ -48,15 +53,16 @@ alter the approved DBML.
 Requests enter through `config.urls`, which mounts the accounts URL
 configuration at `/api/v1/accounts/` and the companies URL configuration at
 `/api/v1/companies/` and the workforce URL configuration at
-`/api/v1/workforce/`. Public registration and token endpoints use dedicated
-DRF views and serializers. All company and workforce endpoints require JWT
-authentication. Company and workforce querysets are scoped to the requesting
+`/api/v1/workforce/` and documents at `/api/v1/documents/`. Public
+registration and token endpoints use dedicated DRF views and serializers.
+Company, workforce, and document endpoints require JWT authentication.
+Company, workforce, and document querysets are scoped to the requesting
 user's membership. The profile and membership serializers expose only safe
 user fields.
 
 ## Database boundary
 
 The approved DBML is preserved verbatim in [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md).
-The company and workforce migrations implement only their approved tables.
-Django auth and Simple JWT own their framework tables and migrations
-independently of that business schema.
+The company, workforce, and documents migrations implement only their
+approved tables. Django auth and Simple JWT own their framework tables and
+migrations independently of that business schema.

@@ -220,5 +220,12 @@ migration uses those exact table names and column relationships and enforces
 the approved unique constraints on department/employee code, company/skill
 name, one profile per employee, and employee/skill assignment. The follow-up
 migration preserves database-side `now()` defaults for workforce timestamp
-columns. No other business tables have been created. Django auth and Simple
-JWT tables remain framework-managed and are outside this business schema.
+columns.
+
+The `documents` app implements only the approved `company_documents` table
+using the exact DBML fields and relationships. `file_path` is stored as
+nullable text metadata only; the app does not upload or store files. Its
+`uploaded_at` field has both an application-side and database-side current
+timestamp default. No other business tables have been created. Django auth
+and Simple JWT tables remain framework-managed and are outside this business
+schema.

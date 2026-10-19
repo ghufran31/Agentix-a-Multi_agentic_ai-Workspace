@@ -141,3 +141,34 @@
   configuration uses `django.db.backends.postgresql` with name `Agentix`.
 - No documents, connections, AI agents, projects, recommendations, or other
   unapproved business models were added.
+
+## 2026-10-19 — Documents app
+
+### Changes
+
+- Added only the approved `CompanyDocument` model, mapped to
+  `company_documents` with the approved fields, relation, and timestamp
+  defaults.
+- Added authenticated list/create and detail/retrieve/update/delete routes
+  under `/api/v1/documents/`.
+- Scoped reads to company memberships and writes to owners, admins, and
+  managers. Company IDs supplied on writes are restricted to companies where
+  the requester has a writable membership; inaccessible document IDs return
+  404.
+- Implemented `file_path` as nullable metadata only; no file upload or
+  storage behavior is claimed.
+- Added documents API and permission tests and registered the app and routes.
+
+### Verification
+
+- `python manage.py check`: passed with no issues.
+- `python manage.py makemigrations --check --dry-run`: passed with no
+  ungenerated model changes.
+- `python manage.py migrate --noinput`: applied
+  `documents.0001_initial` to PostgreSQL `Agentix`.
+- `python manage.py test documents companies accounts workforce --verbosity
+  2 --keepdb`: all 51 tests passed against the existing PostgreSQL
+  `test_Agentix` test database; it was preserved.
+- Both document URL patterns resolved successfully in the automated tests.
+- No integrations, agents, projects, recommendations, or other unapproved
+  apps or business tables were added.

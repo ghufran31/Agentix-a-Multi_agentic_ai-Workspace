@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'accounts',
     'companies',
     'workforce',
+    'documents',
 ]
 
 MIDDLEWARE = [

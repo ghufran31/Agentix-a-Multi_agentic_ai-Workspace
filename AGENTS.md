@@ -31,6 +31,8 @@ endpoint. The `companies` app implements only the approved `companies` and
 `company_users` tables and their requested APIs. All other business features
 in the DBML remain planned, not implemented. The `workforce` app implements
 only departments, employees, employee AI profiles, skills, and employee
-skills. Account registration must not create a company. After the approved
-workforce work is complete, wait for the project owner's approval before
-starting another app.
+skills. The `documents` app implements only company document metadata and
+the approved `company_documents` table; it does not upload or store files.
+Account registration must not create a company. After the approved documents
+work is complete, wait for the project owner's approval before starting
+another app.
