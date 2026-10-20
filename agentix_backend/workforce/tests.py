@@ -5,6 +5,12 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from companies.models import Company, CompanyUser
+from .admin import (
+    DepartmentAdminForm,
+    EmployeeAdminForm,
+    EmployeeSkillAdminForm,
+    SkillAdminForm,
+)
 from .models import Department, Employee, EmployeeAIProfile, EmployeeSkill, Skill
 
 
@@ -385,6 +391,67 @@ class WorkforceApiTests(APITestCase):
         self.assertEqual(Department.objects.count(), 2)
         self.assertEqual(Employee.objects.count(), 2)
         self.assertEqual(Skill.objects.count(), 2)
+
+    def test_admin_employee_skill_form_rejects_cross_company_assignment(self):
+        _, _, _, other_skill = self.create_other_company()
+        form = EmployeeSkillAdminForm(
+            data={
+                'employee': self.employee.pk,
+                'skill': other_skill.pk,
+                'years_experience': '0.00',
+            },
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            'The employee and skill must belong to the same company.',
+            form.non_field_errors(),
+        )
+
+    def test_admin_forms_prevent_moving_existing_skill_assignments_across_companies(self):
+        other_company, other_department, _, _ = self.create_other_company()
+        self.assertNotEqual(
+            other_department.company_id,
+            self.employee.department.company_id,
+        )
+        self.assertTrue(self.employee.skill_assignments.exists())
+        forms = (
+            DepartmentAdminForm(
+                data={
+                    'company': other_company.pk,
+                    'name': self.department.name,
+                    'description': '',
+                },
+                instance=self.department,
+            ),
+            EmployeeAdminForm(
+                data={
+                    'department': other_department.pk,
+                    'employee_code': self.employee.employee_code,
+                    'first_name': self.employee.first_name,
+                    'last_name': self.employee.last_name,
+                    'email': '',
+                    'phone': '',
+                    'address': '',
+                    'date_of_birth': '',
+                },
+                instance=self.employee,
+            ),
+            SkillAdminForm(
+                data={
+                    'company': other_company.pk,
+                    'name': self.skill.name,
+                    'category': '',
+                    'description': '',
+                },
+                instance=self.skill,
+            ),
+        )
+
+        for form in forms:
+            with self.subTest(form=form.__class__.__name__):
+                self.assertFalse(form.is_valid(), form.errors.as_text())
+                self.assertTrue(form.non_field_errors(), form.errors.as_text())
 
     def test_updates_cannot_break_existing_same_company_skill_links(self):
         other_company, other_department, _, _ = self.create_other_company()

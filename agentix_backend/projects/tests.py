@@ -4,6 +4,7 @@ from django.urls import resolve, reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from .admin import ProjectAdminForm, ProjectMemberAdminForm
 from agents.models import AIAgent
 from companies.models import Company, CompanyUser
 from workforce.models import Department, Employee
@@ -266,6 +267,66 @@ class ProjectApiTests(APITestCase):
         self.assertEqual(employee_response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(agent_response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(ProjectMember.objects.count(), 0)
+
+    def test_admin_project_member_form_preserves_candidate_and_company_rules(self):
+        _, _, other_employee, _ = self.create_other_company()
+        conflicting_candidates = ProjectMemberAdminForm(
+            data={
+                'project': self.project.pk,
+                'employee': self.employee.pk,
+                'ai_agent': self.agent.pk,
+                'role': '',
+                'member_type': 'employee',
+                'status': 'active',
+            },
+        )
+        cross_company_candidate = ProjectMemberAdminForm(
+            data={
+                'project': self.project.pk,
+                'employee': other_employee.pk,
+                'ai_agent': '',
+                'role': '',
+                'member_type': 'employee',
+                'status': 'active',
+            },
+        )
+
+        self.assertFalse(conflicting_candidates.is_valid())
+        self.assertIn(
+            'Exactly one of employee or AI agent must be selected.',
+            conflicting_candidates.non_field_errors(),
+        )
+        self.assertFalse(cross_company_candidate.is_valid())
+        self.assertIn(
+            'The employee must belong to the project company.',
+            cross_company_candidate.non_field_errors(),
+        )
+
+    def test_admin_project_form_prevents_moving_existing_members_between_companies(self):
+        ProjectMember.objects.create(
+            project=self.project,
+            employee=self.employee,
+            member_type='employee',
+        )
+        other_company, _, _, _ = self.create_other_company()
+        form = ProjectAdminForm(
+            data={
+                'company': other_company.pk,
+                'name': self.project.name,
+                'description': '',
+                'status': self.project.status,
+                'priority': self.project.priority,
+                'start_date': '',
+                'deadline': '',
+            },
+            instance=self.project,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            'Moving this project would invalidate existing members.',
+            form.non_field_errors(),
+        )
 
     def test_nested_resources_are_scoped_to_accessible_parent_project(self):
         _, other_project, _, _ = self.create_other_company()

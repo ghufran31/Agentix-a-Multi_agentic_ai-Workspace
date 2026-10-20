@@ -4,6 +4,7 @@ from django.urls import resolve, reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from .admin import RecommendationAdminForm
 from agents.models import AIAgent
 from companies.models import Company, CompanyUser
 from projects.models import Project
@@ -280,6 +281,44 @@ class RecommendationApiTests(APITestCase):
         self.assertIn('employee', employee_response.data)
         self.assertEqual(agent_response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('ai_agent', agent_response.data)
+
+    def test_admin_recommendation_form_preserves_candidate_and_company_rules(self):
+        _, _, other_employee, _other_agent, _ = self.create_other_company_records()
+        conflicting_candidates = RecommendationAdminForm(
+            data={
+                'project': self.project.pk,
+                'employee': self.employee.pk,
+                'ai_agent': self.agent.pk,
+                'recommended_role': '',
+                'score': '0.50000',
+                'rank': '1',
+                'reason': '',
+                'status': 'pending',
+            },
+        )
+        cross_company_candidate = RecommendationAdminForm(
+            data={
+                'project': self.project.pk,
+                'employee': other_employee.pk,
+                'ai_agent': '',
+                'recommended_role': '',
+                'score': '0.50000',
+                'rank': '1',
+                'reason': '',
+                'status': 'pending',
+            },
+        )
+
+        self.assertFalse(conflicting_candidates.is_valid())
+        self.assertIn(
+            'Exactly one of employee or AI agent must be selected.',
+            conflicting_candidates.non_field_errors(),
+        )
+        self.assertFalse(cross_company_candidate.is_valid())
+        self.assertIn(
+            'The employee must belong to the project company.',
+            cross_company_candidate.non_field_errors(),
+        )
 
     def test_update_rejects_employee_or_agent_from_another_company(self):
         other_company, _, other_employee, other_agent, _ = (
