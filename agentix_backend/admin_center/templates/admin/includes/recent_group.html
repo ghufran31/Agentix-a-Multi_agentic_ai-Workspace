@@ -1,0 +1,20 @@
+{% load i18n %}
+<div class="agentix-recent-group">
+  <h3>{{ title }}</h3>
+  {% if items %}
+  <ul>
+    {% for item in items %}
+    <li>
+      {% if item.url %}
+      <a href="{{ item.url }}">{{ item.label }}</a>
+      {% else %}
+      <span>{{ item.label }}</span>
+      {% endif %}
+      {% if item.meta %}<span class="agentix-recent-meta">{{ item.meta }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="agentix-empty-hint">{% translate "None yet." %}</p>
+  {% endif %}
+</div>

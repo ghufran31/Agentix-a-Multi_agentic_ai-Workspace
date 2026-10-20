@@ -1,0 +1,481 @@
+/* Agentix Master Control Center — presentation layer for Django Admin. */
+
+body.agentix-admin {
+  font-family: var(--ax-font);
+  background: var(--ax-surface-50);
+  color: var(--ax-text);
+}
+
+body.agentix-admin #container {
+  min-height: 100vh;
+}
+
+/* Header */
+body.agentix-admin #header {
+  background: var(--ax-navy-900);
+  color: #e2e8f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.85rem 1.25rem;
+  box-shadow: var(--ax-shadow-sm);
+}
+
+body.agentix-admin #branding {
+  display: flex;
+  align-items: center;
+}
+
+body.agentix-admin .agentix-branding a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #fff;
+}
+
+body.agentix-admin .agentix-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background: linear-gradient(145deg, var(--ax-indigo-500), var(--ax-violet-500));
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.02em;
+}
+
+body.agentix-admin .agentix-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+body.agentix-admin .agentix-brand-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+body.agentix-admin .agentix-brand-sub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+body.agentix-admin #user-tools {
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+body.agentix-admin #user-tools a,
+body.agentix-admin #logout-form button {
+  color: #e2e8f0;
+  border-radius: var(--ax-radius-sm);
+}
+
+body.agentix-admin #user-tools a:focus-visible,
+body.agentix-admin #logout-form button:focus-visible,
+body.agentix-admin a:focus-visible,
+body.agentix-admin button:focus-visible,
+body.agentix-admin input:focus-visible,
+body.agentix-admin select:focus-visible,
+body.agentix-admin textarea:focus-visible {
+  outline: 2px solid var(--ax-indigo-500);
+  outline-offset: 2px;
+}
+
+/* Navy sidebar */
+body.agentix-admin #nav-sidebar {
+  background: var(--ax-navy-900);
+  color: #cbd5e1;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  width: var(--ax-sidebar-width);
+  padding-top: 0.5rem;
+}
+
+body.agentix-admin #nav-sidebar .module th,
+body.agentix-admin #nav-sidebar .module caption,
+body.agentix-admin #nav-sidebar table caption,
+body.agentix-admin #nav-sidebar caption a,
+body.agentix-admin #nav-sidebar th a,
+body.agentix-admin #nav-sidebar td a,
+body.agentix-admin #nav-sidebar a {
+  color: #e2e8f0;
+}
+
+body.agentix-admin #nav-sidebar .current-app .section:link,
+body.agentix-admin #nav-sidebar .current-app .section:visited,
+body.agentix-admin #nav-sidebar .current-model {
+  color: #fff;
+  background: rgba(99, 102, 241, 0.18);
+  border-radius: var(--ax-radius-sm);
+}
+
+body.agentix-admin #nav-filter {
+  background: var(--ax-navy-800);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: var(--ax-radius-md);
+  margin: 0.75rem;
+  width: calc(100% - 1.5rem);
+}
+
+body.agentix-admin #nav-filter::placeholder {
+  color: #94a3b8;
+}
+
+body.agentix-admin .toggle-nav-sidebar {
+  background: var(--ax-navy-800);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+body.agentix-admin .main > .content {
+  background: var(--ax-surface-50);
+}
+
+body.agentix-admin #content {
+  padding: 1.25rem 1.5rem 2rem;
+}
+
+body.agentix-admin div.breadcrumbs {
+  background: var(--ax-navy-800);
+  color: #cbd5e1;
+  padding: 0.65rem 1.25rem;
+}
+
+body.agentix-admin div.breadcrumbs a {
+  color: #fff;
+}
+
+/* Cards, panels, metrics */
+.agentix-hero {
+  margin-bottom: var(--ax-space-5);
+}
+
+.agentix-eyebrow {
+  margin: 0 0 var(--ax-space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ax-indigo-600);
+}
+
+.agentix-hero h1,
+.agentix-login-intro h1 {
+  margin: 0 0 var(--ax-space-2);
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+  color: var(--ax-text);
+}
+
+.agentix-hero-copy {
+  margin: 0;
+  max-width: 42rem;
+  color: var(--ax-text-muted);
+  line-height: 1.5;
+}
+
+.agentix-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--ax-space-4);
+  margin-bottom: var(--ax-space-5);
+}
+
+.agentix-metric-card,
+.agentix-panel,
+.agentix-empty-state,
+.agentix-login-panel {
+  background: var(--ax-surface-0);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-lg);
+  box-shadow: var(--ax-shadow-sm);
+}
+
+.agentix-metric-card {
+  padding: var(--ax-space-4);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.agentix-metric-card:hover {
+  border-color: #c7d2fe;
+  box-shadow: var(--ax-shadow-md);
+}
+
+.agentix-metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ax-space-2);
+  margin-bottom: var(--ax-space-2);
+}
+
+.agentix-metric-header h2 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ax-text-muted);
+}
+
+.agentix-metric-link {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.agentix-metric-count {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--ax-navy-900);
+  line-height: 1.1;
+}
+
+html[data-theme="dark"] .agentix-metric-count {
+  color: #e2e8f0;
+}
+
+.agentix-metric-meta,
+.agentix-empty-hint,
+.agentix-recent-meta {
+  margin: var(--ax-space-2) 0 0;
+  color: var(--ax-text-muted);
+  font-size: 0.82rem;
+}
+
+.agentix-badge-list {
+  list-style: none;
+  margin: var(--ax-space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.65rem;
+  font-size: 0.78rem;
+  color: var(--ax-text-muted);
+}
+
+.agentix-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--ax-violet-100);
+  color: #5b21b6;
+  font-weight: 600;
+  margin-right: 0.2rem;
+}
+
+html[data-theme="dark"] .agentix-badge {
+  background: #312e81;
+  color: #ddd6fe;
+}
+
+.agentix-button,
+body.agentix-admin .object-tools a,
+body.agentix-admin input[type="submit"],
+body.agentix-admin button.default,
+body.agentix-admin .submit-row input {
+  border-radius: var(--ax-radius-sm);
+}
+
+.agentix-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  background: var(--ax-indigo-600);
+  color: #fff !important;
+  border-radius: var(--ax-radius-sm);
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.agentix-button:hover {
+  background: #4338ca;
+}
+
+.agentix-metric-actions {
+  margin: var(--ax-space-3) 0 0;
+}
+
+.agentix-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  gap: var(--ax-space-4);
+  margin-bottom: var(--ax-space-5);
+}
+
+.agentix-panel {
+  padding: var(--ax-space-4) var(--ax-space-5);
+}
+
+.agentix-panel h2,
+.agentix-empty-state h2 {
+  margin: 0 0 var(--ax-space-3);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.agentix-recent-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--ax-space-4);
+}
+
+.agentix-recent-group h3 {
+  margin: 0 0 var(--ax-space-2);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ax-text-muted);
+}
+
+.agentix-recent-group ul,
+.agentix-action-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.agentix-recent-group li,
+.agentix-action-list li {
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--ax-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.agentix-action-list li {
+  flex-direction: row;
+}
+
+.agentix-action-list a {
+  font-weight: 600;
+}
+
+.agentix-empty-state {
+  padding: var(--ax-space-5);
+  margin-bottom: var(--ax-space-5);
+}
+
+.agentix-empty-state-soft {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+html[data-theme="dark"] .agentix-empty-state-soft {
+  background: #1e1b4b;
+  border-color: #4338ca;
+}
+
+.agentix-app-nav {
+  margin-bottom: var(--ax-space-5);
+}
+
+.agentix-app-nav .module {
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-md);
+  overflow: hidden;
+  box-shadow: none;
+}
+
+body.agentix-admin #content-related .agentix-panel,
+body.agentix-admin #content-related .module {
+  background: var(--ax-surface-0);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-lg);
+  box-shadow: var(--ax-shadow-sm);
+}
+
+/* Tables and forms */
+body.agentix-admin #result_list,
+body.agentix-admin .change-list .results {
+  border-radius: var(--ax-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--ax-border);
+}
+
+body.agentix-admin #changelist table thead th {
+  background: var(--ax-surface-100);
+  font-weight: 600;
+}
+
+body.agentix-admin #changelist table tbody tr:hover {
+  background: #eef2ff;
+}
+
+html[data-theme="dark"] body.agentix-admin #changelist table tbody tr:hover {
+  background: #1e1b4b;
+}
+
+body.agentix-admin .form-row,
+body.agentix-admin fieldset.module {
+  border-radius: var(--ax-radius-md);
+}
+
+body.agentix-admin input[type="text"],
+body.agentix-admin input[type="password"],
+body.agentix-admin input[type="email"],
+body.agentix-admin input[type="url"],
+body.agentix-admin input[type="number"],
+body.agentix-admin textarea,
+body.agentix-admin select {
+  border-radius: var(--ax-radius-sm);
+  border-color: var(--ax-border-strong);
+}
+
+/* Login */
+body.agentix-login #container {
+  background:
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.12), transparent 35%),
+    var(--ax-surface-50);
+}
+
+body.agentix-login #header {
+  justify-content: center;
+}
+
+body.agentix-login .agentix-login-panel {
+  max-width: 28rem;
+  margin: 2.5rem auto;
+  padding: 1.75rem;
+}
+
+body.agentix-login .agentix-login-intro {
+  margin-bottom: 1.25rem;
+}
+
+body.agentix-login .agentix-login-intro p {
+  color: var(--ax-text-muted);
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .agentix-panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  body.agentix-admin #content {
+    padding: 1rem;
+  }
+
+  .agentix-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .agentix-hero h1 {
+    font-size: 1.45rem;
+  }
+
+  body.agentix-admin .agentix-brand-sub {
+    display: none;
+  }
+}

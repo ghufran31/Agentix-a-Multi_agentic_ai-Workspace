@@ -294,3 +294,74 @@
 - Recommendation list, detail, and project-scoped list routes resolved in
   the tests.
 - Confirmed the configured database is PostgreSQL `Agentix`.
+
+## 2026-10-20 — Django Admin configuration
+
+### Changes
+
+- Registered the existing company, workforce, document, connection, AI agent,
+  project, and recommendation models in their app admin modules. Accounts
+  continues to use Django's standard registered User and Group administration;
+  it defines no models.
+- Added useful list columns, searches, filters, ordering, relationship
+  selectors, read-only timestamps, and company/project/employee inlines.
+- Added admin form validation for employee-skill company consistency and
+  project-member/recommendation one-candidate and same-company rules. Existing
+  database constraints and API behavior are unchanged.
+- Confirmed the existing root URL configuration mounts Django Admin at
+  `/admin/`.
+
+### Verification
+
+- `python manage.py check`: passed with no issues.
+- Confirmed the Django Admin registry includes Django's built-in User and
+  Group plus all 14 implemented business models.
+- `python manage.py test accounts companies workforce documents integrations
+  agents projects recommendations`: the initial run could not create its
+  temporary test database because `test_Agentix` already existed and the
+  non-interactive confirmation prompt could not be answered. No database was
+  deleted.
+- Reran the requested app suite with `--keepdb`: all 108 tests passed against
+  the existing PostgreSQL `test_Agentix` test database, which was preserved.
+- Five focused admin-form tests passed for employee-skill company matching,
+  project-member/recommendation candidate and company validation, and
+  department/employee/skill/project changes that could invalidate existing
+  assignments.
+- The final full app suite passed all 113 tests with `--keepdb`, preserving
+  the existing PostgreSQL `test_Agentix` test database.
+- `git diff --check`: passed.
+- No migration was created; Django Admin configuration did not change models
+  or the approved database schema.
+
+## 2026-10-20 — Agentix Master Control Center (admin presentation)
+
+### Changes
+
+- Added presentation-only `admin_center` app with `AgentixAdminSite`,
+  permission-aware dashboard metrics, branded templates, and CSS design
+  tokens. No business models or migrations were added.
+- Wired `AGENTIX_ADMIN_CUSTOMIZATION_ENABLED` in settings so disabling the
+  flag (and restarting) restores stock Django Admin presentation while
+  keeping all existing model registrations.
+- Documented architecture, flag behavior, and rollback in
+  `docs/ADMIN_CUSTOMIZATION.md`. Existing app-level `admin.py` files were
+  left as the source of model administration.
+
+### Verification
+
+- `python manage.py check`: passed with no issues.
+- `python manage.py makemigrations --check --dry-run`: passed; no model
+  changes detected.
+- `python manage.py test admin_center --keepdb`: all 9 tests passed against
+  the existing PostgreSQL `test_Agentix` database.
+- `python manage.py test admin_center recommendations projects agents
+  workforce companies accounts documents integrations --keepdb`: all 122
+  tests passed against the existing PostgreSQL `test_Agentix` database,
+  which was preserved.
+- Strengthened the feature-flag subprocess test to verify that disabled
+  customization resolves Django's stock admin index template and preserves
+  User, Group, and all 14 business-model registrations.
+- Added enabled-mode coverage for the complete admin model registry.
+- `git diff --check`: passed.
+- Uncommitted prior README/status/log admin-registration notes were
+  preserved and extended rather than reverted.

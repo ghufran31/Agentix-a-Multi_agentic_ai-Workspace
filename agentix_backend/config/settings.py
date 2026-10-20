@@ -46,8 +46,36 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+def _env_flag(name, default='false'):
+    return os.environ.get(name, default).strip().lower() in {
+        '1',
+        'true',
+        'yes',
+        'on',
+    }
+
+
+# When disabled, stock Django Admin templates and index are used. Model
+# registrations in each app's admin.py remain active either way.
+AGENTIX_ADMIN_CUSTOMIZATION_ENABLED = _env_flag(
+    'AGENTIX_ADMIN_CUSTOMIZATION_ENABLED',
+    default='true',
+)
+
+if AGENTIX_ADMIN_CUSTOMIZATION_ENABLED:
+    # admin_center must precede AgentixAdminConfig so its templates override
+    # the stock django.contrib.admin templates shipped with AdminConfig.
+    _ADMIN_APPS = [
+        'admin_center',
+        'admin_center.admin_config.AgentixAdminConfig',
+    ]
+else:
+    _ADMIN_APPS = [
+        'django.contrib.admin',
+    ]
+
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    *_ADMIN_APPS,
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

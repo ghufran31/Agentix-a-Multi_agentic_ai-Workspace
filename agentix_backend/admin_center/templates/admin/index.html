@@ -1,0 +1,150 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static admin_filters %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}" {% csp_nonce_attr %}>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard agentix-dashboard{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div id="content-main" class="agentix-dashboard-main">
+  <section class="agentix-hero" aria-labelledby="agentix-dashboard-heading">
+    <div>
+      <p class="agentix-eyebrow">{% translate "Platform overview" %}</p>
+      <h1 id="agentix-dashboard-heading">{{ title }}</h1>
+      <p class="agentix-hero-copy">
+        {% translate "Live counts and shortcuts from the Agentix PostgreSQL database. Cards respect your Django model permissions." %}
+      </p>
+    </div>
+  </section>
+
+  {% if dashboard.cards %}
+  <section class="agentix-metric-grid" aria-label="{% translate 'Platform metrics' %}">
+    {% for card in dashboard.cards %}
+    <article class="agentix-metric-card" data-metric="{{ card.key }}">
+      <header class="agentix-metric-header">
+        <h2>{{ card.label }}</h2>
+        {% if card.changelist_url %}
+        <a class="agentix-metric-link" href="{{ card.changelist_url }}">{% translate "View" %}</a>
+        {% endif %}
+      </header>
+      <p class="agentix-metric-count">{{ card.count }}</p>
+      {% if card.recent_window_count is not None %}
+      <p class="agentix-metric-meta">
+        {% blocktranslate with count=card.recent_window_count %}{{ count }} created in the last 30 days{% endblocktranslate %}
+      </p>
+      {% endif %}
+      {% if card.status_breakdown %}
+      <ul class="agentix-badge-list" aria-label="{% translate 'Status breakdown' %}">
+        {% for item in card.status_breakdown %}
+        <li><span class="agentix-badge status-{{ item.label|slugify }}">{{ item.label }}</span> {{ item.count }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if card.role_breakdown %}
+      <ul class="agentix-badge-list" aria-label="{% translate 'Role breakdown' %}">
+        {% for item in card.role_breakdown %}
+        <li><span class="agentix-badge role-{{ item.label|slugify }}">{{ item.label }}</span> {{ item.count }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if card.count == 0 %}
+      <p class="agentix-empty-hint">{% translate "No records yet." %}</p>
+      {% endif %}
+      {% if card.add_url %}
+      <p class="agentix-metric-actions"><a class="agentix-button" href="{{ card.add_url }}">{% translate "Add" %}</a></p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="agentix-empty-state">
+    <h2>{% translate "No metrics available" %}</h2>
+    <p>{% translate "Your account does not have view permissions for registered Agentix models." %}</p>
+  </section>
+  {% endif %}
+
+  {% if dashboard.is_empty and dashboard.cards %}
+  <section class="agentix-empty-state agentix-empty-state-soft">
+    <h2>{% translate "Database is ready" %}</h2>
+    <p>{% translate "Counts are zero across visible models. Create records from the quick actions or model links below." %}</p>
+  </section>
+  {% endif %}
+
+  <div class="agentix-panels">
+    <section class="agentix-panel" aria-labelledby="agentix-recent-heading">
+      <h2 id="agentix-recent-heading">{% translate "Recent records" %}</h2>
+      <div class="agentix-recent-groups">
+        {% translate "Companies" as recent_companies_title %}
+        {% include "admin/includes/recent_group.html" with title=recent_companies_title items=dashboard.recent_companies %}
+        {% translate "Projects" as recent_projects_title %}
+        {% include "admin/includes/recent_group.html" with title=recent_projects_title items=dashboard.recent_projects %}
+        {% translate "AI agents" as recent_agents_title %}
+        {% include "admin/includes/recent_group.html" with title=recent_agents_title items=dashboard.recent_agents %}
+        {% translate "Recommendations" as recent_recommendations_title %}
+        {% include "admin/includes/recent_group.html" with title=recent_recommendations_title items=dashboard.recent_recommendations %}
+      </div>
+    </section>
+
+    <section class="agentix-panel" aria-labelledby="agentix-actions-heading">
+      <h2 id="agentix-actions-heading">{% translate "Quick actions" %}</h2>
+      {% if dashboard.quick_actions %}
+      <ul class="agentix-action-list">
+        {% for action in dashboard.quick_actions %}
+        <li><a href="{{ action.url }}">{{ action.label }}</a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="agentix-empty-hint">{% translate "No create permissions for registered models." %}</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="agentix-panel agentix-app-nav" aria-labelledby="agentix-modules-heading">
+    <h2 id="agentix-modules-heading">{% translate "Modules" %}</h2>
+    <div class="app-list">
+      {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+  <div class="module agentix-panel" id="recent-actions-module">
+    <h2>{% translate 'Recent actions' %}</h2>
+    <h3>{% translate 'My actions' %}</h3>
+    {% load log %}
+    {% get_admin_log 10 as admin_log for_user user %}
+    {% if not admin_log %}
+    <p>{% translate 'None available' %}</p>
+    {% else %}
+    <ul class="actionlist">
+      {% for entry in admin_log %}
+      <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+        <span class="visually-hidden">{% if entry.is_addition %}{% translate 'Added:' %}{% elif entry.is_change %}{% translate 'Changed:' %}{% elif entry.is_deletion %}{% translate 'Deleted:' %}{% endif %}</span>
+        {% if entry.is_deletion or not entry.get_admin_url %}
+          {{ entry.object_repr|to_object_display_value }}
+        {% else %}
+          <a href="{{ entry.get_admin_url }}">{{ entry.object_repr|to_object_display_value }}</a>
+        {% endif %}
+        <br>
+        {% if entry.content_type %}
+          <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+        {% else %}
+          <span class="mini quiet">{% translate 'Unknown content' %}</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

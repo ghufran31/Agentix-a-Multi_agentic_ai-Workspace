@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% load static i18n %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Agentix Admin') }}{% endblock %}
+
+{% block dark-mode-vars %}
+  {# Prefer a light professional shell; keep Django theme toggle available. #}
+  <link rel="stylesheet" href="{% static "admin/css/dark_mode.css" %}" {% csp_nonce_attr %}>
+  <script src="{% static "admin/js/theme.js" %}" {% csp_nonce_attr %}></script>
+{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static "admin_center/css/tokens.css" %}" {% csp_nonce_attr %}>
+  <link rel="stylesheet" href="{% static "admin_center/css/admin.css" %}" {% csp_nonce_attr %}>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} agentix-admin{% endblock %}
+
+{% block branding %}
+<div id="site-name" class="agentix-branding">
+  <a href="{% url 'admin:index' %}">
+    <span class="agentix-brand-mark" aria-hidden="true">A</span>
+    <span class="agentix-brand-text">
+      <span class="agentix-brand-name">Agentix</span>
+      <span class="agentix-brand-sub">{{ site_header|default:_('Master Control Center') }}</span>
+    </span>
+  </a>
+</div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

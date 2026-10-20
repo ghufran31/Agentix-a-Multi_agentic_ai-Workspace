@@ -1,0 +1,103 @@
+/*
+  Agentix Admin design tokens — single source of truth for colors,
+  typography, spacing, and elevation. Imported by admin.css.
+*/
+
+html[data-theme="light"],
+:root {
+  --ax-navy-950: #071526;
+  --ax-navy-900: #0b1f33;
+  --ax-navy-800: #122b45;
+  --ax-navy-700: #1a3a5c;
+  --ax-indigo-600: #4f46e5;
+  --ax-indigo-500: #6366f1;
+  --ax-violet-500: #8b5cf6;
+  --ax-violet-100: #ede9fe;
+  --ax-surface-0: #ffffff;
+  --ax-surface-50: #f8fafc;
+  --ax-surface-100: #f1f5f9;
+  --ax-border: #e2e8f0;
+  --ax-border-strong: #cbd5e1;
+  --ax-text: #0f172a;
+  --ax-text-muted: #64748b;
+  --ax-text-soft: #94a3b8;
+  --ax-success: #059669;
+  --ax-warning: #d97706;
+  --ax-danger: #dc2626;
+  --ax-info: #0284c7;
+
+  --ax-radius-sm: 6px;
+  --ax-radius-md: 10px;
+  --ax-radius-lg: 14px;
+  --ax-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --ax-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --ax-space-1: 0.25rem;
+  --ax-space-2: 0.5rem;
+  --ax-space-3: 0.75rem;
+  --ax-space-4: 1rem;
+  --ax-space-5: 1.5rem;
+  --ax-space-6: 2rem;
+  --ax-font: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --ax-font-mono: ui-monospace, "Cascadia Mono", "Segoe UI Mono", Consolas, monospace;
+  --ax-sidebar-width: 260px;
+
+  /* Map onto Django admin CSS variables for broad coverage. */
+  --primary: var(--ax-indigo-500);
+  --secondary: var(--ax-navy-900);
+  --accent: var(--ax-violet-500);
+  --primary-fg: #fff;
+  --body-fg: var(--ax-text);
+  --body-bg: var(--ax-surface-50);
+  --body-quiet-color: var(--ax-text-muted);
+  --body-medium-color: #334155;
+  --body-loud-color: var(--ax-text);
+  --header-color: #e2e8f0;
+  --header-branding-color: #fff;
+  --header-bg: var(--ax-navy-900);
+  --header-link-color: #e2e8f0;
+  --breadcrumbs-fg: #cbd5e1;
+  --breadcrumbs-link-fg: #fff;
+  --breadcrumbs-bg: var(--ax-navy-800);
+  --link-fg: var(--ax-indigo-600);
+  --link-hover-color: var(--ax-navy-800);
+  --link-selected-fg: var(--ax-indigo-600);
+  --hairline-color: var(--ax-border);
+  --border-color: var(--ax-border-strong);
+  --darkened-bg: var(--ax-surface-100);
+  --selected-bg: #eef2ff;
+  --selected-row: #e0e7ff;
+  --button-fg: #fff;
+  --button-bg: var(--ax-indigo-600);
+  --button-hover-bg: #4338ca;
+  --default-button-bg: var(--ax-navy-800);
+  --default-button-hover-bg: var(--ax-navy-700);
+  --close-button-bg: #64748b;
+  --close-button-hover-bg: #475569;
+  --delete-button-bg: var(--ax-danger);
+  --delete-button-hover-bg: #b91c1c;
+  --object-tools-fg: #fff;
+  --object-tools-bg: var(--ax-navy-700);
+  --object-tools-hover-bg: var(--ax-indigo-600);
+  --font-family-primary: var(--ax-font);
+  --font-family-monospace: var(--ax-font-mono);
+}
+
+html[data-theme="dark"] {
+  --ax-surface-0: #0f172a;
+  --ax-surface-50: #0b1220;
+  --ax-surface-100: #111827;
+  --ax-border: #1f2937;
+  --ax-border-strong: #334155;
+  --ax-text: #e2e8f0;
+  --ax-text-muted: #94a3b8;
+  --ax-text-soft: #64748b;
+  --body-bg: var(--ax-surface-50);
+  --body-fg: var(--ax-text);
+  --darkened-bg: var(--ax-surface-100);
+  --selected-bg: #1e1b4b;
+  --selected-row: #312e81;
+  --hairline-color: var(--ax-border);
+  --border-color: var(--ax-border-strong);
+  --link-fg: #a5b4fc;
+  --link-hover-color: #c7d2fe;
+}

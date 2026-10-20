@@ -1,6 +1,6 @@
 # Current status
 
-Updated: 2026-10-19
+Updated: 2026-10-20
 
 ## Implemented
 
@@ -51,11 +51,46 @@ Updated: 2026-10-19
   database-enforces exactly one same-company employee or AI agent target.
 - Recommendation records are stored as supplied; no generation or AI scoring
   algorithm is implemented.
+- Django Admin is mounted at `/admin/`. Django's built-in User and Group
+  administration remains enabled, and all implemented business models are
+  registered with searchable, filterable lists and relationship-aware forms.
+- The presentation-only `admin_center` app customizes Django Admin into the
+  Agentix Master Control Center when `AGENTIX_ADMIN_CUSTOMIZATION_ENABLED`
+  is true. It adds branding, design tokens, and a permission-aware dashboard
+  of real model counts. It defines no business models or migrations.
 - Focused accounts API tests have been added.
 - The exact approved DBML is recorded in `docs/DATABASE_SCHEMA.md`.
 
 ## Verification
 
+- `python manage.py check`: passed after the Agentix Master Control Center
+  presentation was added; no issues reported.
+- `python manage.py makemigrations --check --dry-run`: passed; no model
+  changes detected (`admin_center` has no models).
+- `python manage.py test admin_center --keepdb`: all 9 admin_center tests
+  passed, including dashboard metrics, permission gating, empty business
+  data, customized index rendering, company-owner denial without staff, and
+  a subprocess check that `AGENTIX_ADMIN_CUSTOMIZATION_ENABLED=false`
+  restores stock `django.contrib.admin`.
+- Full suite `python manage.py test admin_center recommendations projects
+  agents workforce companies accounts documents integrations --keepdb`:
+  all 122 tests passed against the existing PostgreSQL `test_Agentix`
+  database, which was preserved.
+- The feature-flag subprocess test confirms that disabling customization
+  selects Django's stock admin index template and preserves User, Group, and
+  all implemented business model registrations.
+- `python manage.py check`: passed after the Django Admin configuration.
+- The Django Admin registry contains the built-in User and Group models and
+  all 14 implemented business models.
+- Five focused admin-form tests passed for employee-skill company matching,
+  project-member/recommendation candidate and company validation, and
+  department/employee/skill/project changes that could invalidate existing
+  assignments or members.
+- `python manage.py test accounts companies workforce documents integrations
+  agents projects recommendations --keepdb`: all 113 tests passed after the
+  admin relationship safeguards were added.
+- `git diff --check`: passed.
+- Admin changes require no migrations; no models or schema were changed.
 - `python manage.py test accounts --verbosity 1`: **12 tests passed** against
   PostgreSQL's temporary `test_Agentix` database; Django removed that
   temporary test database after the run.
