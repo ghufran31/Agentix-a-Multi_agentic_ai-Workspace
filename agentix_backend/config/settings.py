@@ -91,6 +91,7 @@ INSTALLED_APPS = [
     'agents',
     'projects',
     'recommendations',
+    'orchestrator',
 ]
 
 MIDDLEWARE = [
@@ -198,3 +199,10 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+GROQ_MODEL_NAME = os.environ.get('GROQ_MODEL_NAME', 'openai/gpt-oss-120b')
+GROQ_TEMPERATURE = float(os.environ.get('GROQ_TEMPERATURE', '0'))
+GROQ_REQUEST_TIMEOUT = float(os.environ.get('GROQ_REQUEST_TIMEOUT', '60'))
+GROQ_MAX_RETRIES = int(os.environ.get('GROQ_MAX_RETRIES', '2'))
+GROQ_MAX_TOKENS = int(os.environ.get('GROQ_MAX_TOKENS', '16384'))

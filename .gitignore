@@ -17,3 +17,6 @@ media/
 
 # Local SQLite databases
 db.sqlite3
+
+# Local AI model workspace
+/ai_model/

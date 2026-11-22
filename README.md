@@ -52,7 +52,7 @@ without approval.
 
 ## Requirements
 
-- Python 3.12 or later.
+- Python 3.13 for the shared Django and employee-matching environment.
 - PostgreSQL, with a database and account available to the developer.
 
 ## Windows PowerShell setup
@@ -60,10 +60,14 @@ without approval.
 From the repository root:
 
 ```powershell
-py -m venv .venv
-.\.venv\Scripts\Activate.ps1
+py -3.13 -m venv .venv-ml
+.\.venv-ml\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 ```
+
+If `.venv-ml` already exists, skip the `py -3.13 -m venv` command. The root
+requirements file pins the Django backend and the preserved employee-matching
+model and preprocessing dependencies.
 
 Copy the root example file and edit `.env` with your PostgreSQL connection
 settings and a newly generated Django secret key. The `.env` file is loaded
@@ -96,6 +100,12 @@ approved schema: companies, workforce, documents, connections, AI agent
 metadata, projects, project requirements, project members, and
 recommendations. The `accounts` app has no models and registration does not
 create a company.
+
+The `orchestrator` app is currently a minimal Django shell around the preserved
+employee-matching code in `agentix_backend/orchestrator/ml_engine/`. Its model
+artifacts and ML dependencies are retained. The independent LangChain Database
+Agent is implemented under `orchestrator/agents/database/` and uses
+company-scoped Django ORM tools without ML inference or Supervisor orchestration.
 
 ## Accounts API
 
@@ -202,6 +212,39 @@ python manage.py showmigrations auth token_blacklist companies workforce documen
 The test runner creates and tears down its own temporary test database; it
 does not delete the configured development database.
 
+## Database Agent
+
+The independent Database Agent uses the configured Groq provider and
+LangChain tools. Set `GROQ_API_KEY`, `GROQ_MODEL_NAME`,
+`GROQ_TEMPERATURE`, `GROQ_REQUEST_TIMEOUT`, and `GROQ_MAX_RETRIES` in `.env`.
+It is read-only by default in the testing console:
+
+```powershell
+cd agentix_backend
+..\.venv-ml\Scripts\python.exe manage.py test_database_agent --user-id USER_ID --company-id COMPANY_ID
+```
+
+The command refuses databases whose names do not contain `test`. For an
+explicitly isolated test database, add `--allow-live-writes` to permit writes
+for the known test user and company. Destructive operations still require a
+separate approval decision.
+
+## Project Planning Agent
+
+The independent Project Agent analyzes project ideas, uses validated read-only
+planning tools, and returns a typed specification or targeted clarification.
+It does not persist projects, fabricate IDs, call the Database Agent, run
+employee matching, or touch `ml_engine`.
+
+```powershell
+cd agentix_backend
+..\.venv-ml\Scripts\python.exe manage.py test_project_agent
+```
+
+Run the built-in live scenarios with `--scenario all --summary` and use
+`--model openai/gpt-oss-120b` to select the required model explicitly. See the
+[Project Agent guide](docs/orchestrator/PROJECT_AGENT.md).
+
 ## Project documentation
 
 - [Architecture and planned apps](docs/ARCHITECTURE.md)
@@ -217,6 +260,7 @@ does not delete the configured development database.
 - [Projects API details](docs/modules/projects.md)
 - [Recommendations API details](docs/modules/recommendations.md)
 - [Django Admin Master Control Center](docs/ADMIN_CUSTOMIZATION.md)
+- [Project Planning Agent](docs/orchestrator/PROJECT_AGENT.md)
 
 Other future apps are not authorized by this implementation. Wait for the
 project owner's approval before starting another app.

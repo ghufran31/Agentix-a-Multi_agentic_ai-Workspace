@@ -36,6 +36,12 @@
   approved `recommendations` table. Records are scoped through their project
   company and must reference exactly one same-company employee or AI agent.
   The app stores recommendation records; it does not generate or score them.
+- **Orchestrator app:** `agentix_backend/orchestrator` preserves the existing
+  employee-matching code and artifacts under `ml_engine/` and contains two
+  independent LangChain specialists: the authorized Database Agent and the
+  read-only Project Planning Agent. No LangGraph Supervisor is implemented and
+  the Project Agent does not call other agents or persist projects. See the
+  [Project Agent guide](orchestrator/PROJECT_AGENT.md).
 - **Persistence configuration:** PostgreSQL remains the configured database;
   connection details and the Django secret key are read from environment
   variables.

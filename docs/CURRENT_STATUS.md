@@ -1,9 +1,26 @@
 # Current status
 
-Updated: 2026-10-20
+Updated: 2026-11-22
 
 ## Implemented
 
+- Agent 02, the independent Project Planning Agent, is implemented under
+  `agentix_backend/orchestrator/agents/project/`. It uses the shared Groq
+  factory, external Markdown prompt, seven deterministic planning tools, strict
+  nested Pydantic outputs, multi-turn input, a standalone console, and
+  read-only company skill-taxonomy matching. It cannot save projects or call
+  other agents. Agent 03 and the Supervisor have not started.
+
+- The independent LangChain/Groq Database Agent is implemented under
+  `agentix_backend/orchestrator/agents/database/` with a separate Markdown
+  system prompt, Pydantic execution schemas, company-scoped tools, role
+  checks, read-only context support, and a reusable standalone approval
+  registry. It does not call the ML engine or implement a Supervisor graph.
+
+- The `orchestrator` app has been reset to a minimal Django shell. The
+  pre-existing `ml_engine` source and artifacts are preserved; orchestration
+  agents, planning, execution, chat, and LangGraph/LangChain integrations are
+  not present. The old progress log is historical only.
 - Django project settings now use environment-provided secret and PostgreSQL
   credentials instead of checked-in values; local settings load them from the
   repository-root `.env` file.
