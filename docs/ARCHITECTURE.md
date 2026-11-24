@@ -37,10 +37,18 @@
   company and must reference exactly one same-company employee or AI agent.
   The app stores recommendation records; it does not generate or score them.
 - **Orchestrator app:** `agentix_backend/orchestrator` preserves the existing
-  employee-matching code and artifacts under `ml_engine/` and contains two
-  independent LangChain specialists: the authorized Database Agent and the
-  read-only Project Planning Agent. No LangGraph Supervisor is implemented and
-  the Project Agent does not call other agents or persist projects. See the
+  employee-matching code and artifacts under `ml_engine/`, the four LangChain
+  specialists, and the LangGraph Supervisor. Its approved project workflow
+  maps a validated Project Agent specification into the approved project and
+  requirement fields, requires authenticated human approval before writes,
+  and uses a durable receipt for retry recovery. The existing matcher reads
+  requirement skills and roles from those approved text fields. Explicit
+  `YYYY-MM-DD` deadlines are validated and persisted to the approved
+  `projects.deadline` field. A create-and-match request without a valid date
+  is clarified before writes; matching an existing project uses its
+  company-scoped saved deadline. No date is inferred from milestone
+  durations. See the
+  [orchestrator architecture](orchestrator/ARCHITECTURE.md) and
   [Project Agent guide](orchestrator/PROJECT_AGENT.md).
 - **Persistence configuration:** PostgreSQL remains the configured database;
   connection details and the Django secret key are read from environment

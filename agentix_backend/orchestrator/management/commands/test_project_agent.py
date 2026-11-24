@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 
 from orchestrator.agents.project.agent import execute_project_task
+from orchestrator.core.llm_factory import resolve_llm_selection
 from orchestrator.core.permissions import database_context
 
 
@@ -119,7 +120,7 @@ class Command(BaseCommand):
         if not path.parent.exists():
             raise CommandError('The report parent directory does not exist.')
         payload = {
-            'model': model or settings.GROQ_MODEL_NAME,
+            'model': resolve_llm_selection(model)[1],
             'contains_secrets': False,
             'turns': self._report_records,
             'total_model_api_responses': sum(

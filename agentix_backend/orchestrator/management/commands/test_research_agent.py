@@ -1,9 +1,10 @@
 import os
 
-from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand, CommandError
 
 from orchestrator.agents.research.agent import execute_research
+from orchestrator.core.llm_factory import get_llm
 
 
 class Command(BaseCommand):
@@ -13,8 +14,12 @@ class Command(BaseCommand):
         parser.add_argument('--question', action='append')
 
     def handle(self, *args, **options):
-        if not os.getenv('TAVILY_API_KEY', '').strip() or not settings.GROQ_API_KEY:
-            raise CommandError('Set TAVILY_API_KEY and GROQ_API_KEY before running live research.')
+        if not os.getenv('TAVILY_API_KEY', '').strip():
+            raise CommandError('Set TAVILY_API_KEY before running live research.')
+        try:
+            get_llm()
+        except ImproperlyConfigured as exc:
+            raise CommandError(str(exc)) from None
         history = []
         questions = iter(options['question']) if options['question'] else None
         while True:

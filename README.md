@@ -101,11 +101,19 @@ metadata, projects, project requirements, project members, and
 recommendations. The `accounts` app has no models and registration does not
 create a company.
 
-The `orchestrator` app is currently a minimal Django shell around the preserved
-employee-matching code in `agentix_backend/orchestrator/ml_engine/`. Its model
-artifacts and ML dependencies are retained. The independent LangChain Database
-Agent is implemented under `orchestrator/agents/database/` and uses
-company-scoped Django ORM tools without ML inference or Supervisor orchestration.
+The `orchestrator` app preserves the employee-matching implementation and
+artifacts in `agentix_backend/orchestrator/ml_engine/`, four LangChain
+specialists, and the LangGraph Supervisor. Its approved project workflow can
+plan a project, pause for authenticated human approval, save supported project
+and requirement fields with durable idempotency, and dispatch employee
+matching. Project requirements, roles, and skills are stored in the approved
+text fields; no normalized project-role or project-skill business tables are
+added. An explicitly supplied `YYYY-MM-DD` deadline flows through planning,
+the Project Agent specification, validation, and `Project.deadline`. If a
+new project is to be matched but no valid deadline was supplied, the
+Supervisor asks for it before any project write or matching. Matching an
+existing project uses only its company-scoped saved deadline; milestone
+durations are never used to infer one.
 
 ## Accounts API
 
@@ -247,6 +255,32 @@ Run the built-in live scenarios with `--scenario all --summary` and use
 
 ## Project documentation
 
+### LLM provider selection
+
+The shared factory still defaults to Groq. To opt the future Supervisor into
+OpenRouter, set the following in the ignored repository-root `.env`:
+
+```dotenv
+OPENROUTER_API_KEY=
+SUPERVISOR_LLM_PROVIDER=openrouter
+SUPERVISOR_LLM_MODEL=openrouter/free
+```
+
+Fill in the key locally. Use `SPECIALIST_LLM_PROVIDER` and
+`SPECIALIST_LLM_MODEL` independently if you want to switch specialist agents.
+Each role falls back to its provider's configured model (`GROQ_MODEL_NAME`
+or `OPENROUTER_MODEL_NAME`) when its model is unset. OpenRouter requires a
+`:free` model ID or `openrouter/free` and has no automatic paid fallback.
+`OPENROUTER_TIMEOUT_MS` and `OPENROUTER_MAX_TOKENS` control request limits.
+
+Future graph nodes can call `get_llm(role='supervisor')` from
+`orchestrator.core.llm_factory` and use `structured_llm(model, Schema)` for
+Pydantic parsing. OpenRouter uses a tool call to carry the schema. Groq uses
+its native JSON-schema mode. From `agentix_backend`, run
+`python manage.py test orchestrator.test_llm_factory` for offline verification.
+
+### Reference
+
 - [Architecture and planned apps](docs/ARCHITECTURE.md)
 - [Approved DBML schema](docs/DATABASE_SCHEMA.md)
 - [Current implementation status](docs/CURRENT_STATUS.md)
@@ -264,3 +298,8 @@ Run the built-in live scenarios with `--scenario all --summary` and use
 
 Other future apps are not authorized by this implementation. Wait for the
 project owner's approval before starting another app.
+
+## Production deployment
+
+See the [Docker Compose and Dokploy guide](docs/deployment/DOKPLOY.md) for
+the ARM64 backend stack, environment configuration, and backups.

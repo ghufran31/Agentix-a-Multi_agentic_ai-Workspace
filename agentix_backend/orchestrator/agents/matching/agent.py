@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from companies.models import CompanyUser
 from projects.models import Project
 
-from orchestrator.core.llm_factory import get_llm
+from orchestrator.core.llm_factory import LLMProviderError, get_llm
 from orchestrator.tools.matching.context_tools import context_tools as make_context_tools
 from .config import load_system_prompt
 from .schemas import MatchingAgentResult, MatchingResponse
@@ -35,7 +35,7 @@ def execute_matching_task(context, task, conversation=None, model_name=None, age
     try:
         runtime = agent or build_matching_agent(context, model_name)
         result = runtime.invoke({'messages': [*messages, HumanMessage(content=task)]})
-    except APIError as exc:
+    except (APIError, LLMProviderError) as exc:
         return MatchingAgentResult(success=False, answer='Model provider request failed.',
                                    validation_errors=[type(exc).__name__], model_requests=1)
     output = result.get('messages', [])

@@ -19,7 +19,8 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR.parent / '.env')
+if os.environ.get('DJANGO_SETTINGS_MODULE') != 'config.production':
+    load_dotenv(BASE_DIR.parent / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -206,3 +207,32 @@ GROQ_TEMPERATURE = float(os.environ.get('GROQ_TEMPERATURE', '0'))
 GROQ_REQUEST_TIMEOUT = float(os.environ.get('GROQ_REQUEST_TIMEOUT', '60'))
 GROQ_MAX_RETRIES = int(os.environ.get('GROQ_MAX_RETRIES', '2'))
 GROQ_MAX_TOKENS = int(os.environ.get('GROQ_MAX_TOKENS', '16384'))
+
+OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
+OPENROUTER_MODEL_NAME = os.environ.get('OPENROUTER_MODEL_NAME', '')
+OPENROUTER_TIMEOUT_MS = int(os.environ.get('OPENROUTER_TIMEOUT_MS', '30000'))
+OPENROUTER_MAX_TOKENS = int(os.environ.get('OPENROUTER_MAX_TOKENS', '1024'))
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', '')
+GEMINI_MODEL_NAME = os.environ.get('GEMINI_MODEL_NAME', 'gemini-2.5-flash')
+GEMINI_REQUEST_TIMEOUT = float(os.environ.get('GEMINI_REQUEST_TIMEOUT', '30'))
+GEMINI_FREE_TIER_CONFIRMED = _env_flag('GEMINI_FREE_TIER_CONFIRMED')
+GROQ_FREE_TIER_CONFIRMED = _env_flag('GROQ_FREE_TIER_CONFIRMED')
+
+SPECIALIST_LLM_PROVIDER = os.environ.get('SPECIALIST_LLM_PROVIDER', 'groq')
+SPECIALIST_LLM_MODEL = os.environ.get('SPECIALIST_LLM_MODEL', '')
+SUPERVISOR_LLM_PROVIDER = os.environ.get('SUPERVISOR_LLM_PROVIDER', 'groq')
+SUPERVISOR_LLM_MODEL = os.environ.get('SUPERVISOR_LLM_MODEL', '')
+SUPERVISOR_FALLBACK_ENABLED = _env_flag('SUPERVISOR_FALLBACK_ENABLED')
+SUPERVISOR_FALLBACK_PROVIDERS = (
+    (os.environ.get('SUPERVISOR_FALLBACK_1_PROVIDER', 'gemini'),
+     os.environ.get('SUPERVISOR_FALLBACK_1_MODEL', 'gemini-2.5-flash')),
+    (os.environ.get('SUPERVISOR_FALLBACK_2_PROVIDER', 'openrouter'),
+     os.environ.get('SUPERVISOR_FALLBACK_2_MODEL', 'openrouter/free')),
+)
+
+
+
+AGENTIX_SUPERVISOR_CONSOLE_ENABLED = _env_flag('AGENTIX_SUPERVISOR_CONSOLE_ENABLED')
+AGENTIX_SUPERVISOR_CONSOLE_MODE = os.environ.get('AGENTIX_SUPERVISOR_CONSOLE_MODE', 'mock')
+
+AGENTIX_SUPERVISOR_CONSOLE_TEST_WRITES = _env_flag('AGENTIX_SUPERVISOR_CONSOLE_TEST_WRITES')

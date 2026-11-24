@@ -1,8 +1,9 @@
 # Orchestrator architecture
 
-> Historical design notes for the removed prototype. They do not describe the
-> current app. The current baseline is a minimal Django shell with the
-> preserved `ml_engine` directory.
+The orchestrator is a LangGraph Supervisor with four LangChain specialist
+agents: Database, Matching, Project Planning, and Research. Specialist agents
+remain responsible for their domain work; the graph owns planning, scheduling,
+authorization, checkpoints, streaming, and approval resume.
 
 The Supervisor graph initializes missing fields, optionally plans one new
 request, and executes ready plans. Supply an explicit `user_request` in state and pass a
@@ -117,6 +118,25 @@ Foreign and missing IDs share one `not_found` outcome. Employee names and
 contact fields are excluded. Numeric precision fields serialize as decimal
 strings and deadlines as ISO dates.
 
+The Supervisor separately registers `database.create_project`. It accepts a
+strict Project Agent specification (or its validated structured-output
+envelope), requires `projects.write`, an owner/admin/manager membership, and
+a matching authenticated approval record, and rechecks membership before
+writing. The deterministic mapper saves only supported `projects` and
+`project_requirements` fields. It treats the company skill table—not an LLM
+taxonomy label or ID—as authoritative; requested skills remain text in
+requirements, with unresolved taxonomy names reported. The approved schema
+has no normalized project-role or project-skill tables, and matching consumes
+the existing text fields directly.
+
+Project, requirement, and `ProjectCreationReceipt` rows commit in one
+transaction. The receipt is unique by company and operation identity, stores
+the canonical mapped payload, returns the original project after a retry, and
+rejects conflicting payloads. The receipt is an internal orchestration table,
+not a change to the approved business schema. Approval review identifies the
+fields that will be saved and specification sections that are not persisted.
+The complete specification remains in the workflow result.
+
 List inputs use an ascending primary-key cursor and a limit of 1–25 (10
 by default). Nested collections are capped at 25 per parent and requirement
 text at 1,000 characters per field, with explicit truncation flags. Matching
@@ -147,6 +167,17 @@ behavior applies. Results contain eligible employee IDs, rank, skill
 metrics, and a model score derived from synthetic labels. The score is exploratory
 decision support. It has no established real-world calibration.
 
+The Project Agent specification has an optional date-only `deadline` field.
+The Supervisor binds it only from a valid, explicitly user-supplied ISO date,
+passes that date through Project planning and the validated create input, and
+requires the generated specification to match it exactly. The deterministic
+mapper persists it to the approved `Project.deadline` field, which the
+existing matching context and feature extractor read. For a create-and-match
+request without a date, the Supervisor asks before dispatching the Project
+Agent or opening an approval; for an existing project, it uses only the
+deadline read from the authorized company-scoped database record. It does not
+infer dates from milestone durations or change matching features.
+
 `open_checkpointer()` defaults to memory. For an approved deployment, install
 the optional `langgraph-checkpoint-postgres==3.2.1`, set
 `AGENTIX_CHECKPOINT_BACKEND=postgres` and provide a private
@@ -156,8 +187,10 @@ After approval, use a provisioning role to call the official saver's
 `checkpoint_migrations`, `checkpoints`, `checkpoint_blobs`, and
 `checkpoint_writes` and their indexes. Use a scoped runtime role afterward
 and keep the service inside the checkpointer context. Application startup and
-ordinary use do not call setup. PostgreSQL persistence has not been exercised
-against a live database in this phase.
+ordinary use do not call setup. The PostgreSQL saver and authenticated
+approval/resume path were exercised against the isolated disposable
+`test_Agentix` database. The test run deleted only its own checkpoint threads
+and temporary business fixtures; no real provider calls were made.
 
 Reference: [LangGraph Graph API](https://docs.langchain.com/oss/python/langgraph/graph-api).
 See [ChatGroq structured output](https://reference.langchain.com/python/langchain-groq/chat_models/ChatGroq/with_structured_output)
@@ -168,6 +201,21 @@ See [LangGraph subgraphs](https://docs.langchain.com/oss/python/langgraph/use-su
 for checkpoint inheritance.
 See [LangGraph interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts)
 for the checkpoint and resume contract.
+
+## Main graph modules
+
+- `graph/builder.py` builds planning and execution graphs and keeps public
+  build interfaces intact.
+- `graph/planner.py` performs structured planning.
+- `graph/nodes.py` contains initialization, execution, finishing, and result
+  observation nodes.
+- `graph/scheduling.py` resolves prerequisites, approval gates, and `Send`
+  fan-out.
+- `graph/approvals.py` creates durable approval requests and validates
+  interrupt decisions.
+- `core/agent_registry.py` is the source of capability schemas, permissions,
+  and mock/real bindings.
+- `core/specialist_dispatch.py` contains the real specialist adapters.
 
 ## Developer chat
 

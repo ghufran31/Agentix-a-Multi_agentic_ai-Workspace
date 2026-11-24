@@ -1,0 +1,16 @@
+*
+!Dockerfile
+!requirements.txt
+!requirements-production.txt
+!agentix_backend/
+!agentix_backend/**
+!deploy/
+!deploy/web-start.sh
+**/.env
+**/.env.*
+**/__pycache__/
+**/*.py[cod]
+**/media/
+**/staticfiles/
+**/*.sqlite3
+**/*.log

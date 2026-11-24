@@ -1,8 +1,9 @@
+from datetime import date
 from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, ToolMessage
 from pydantic import ValidationError
 
 from companies.models import Company, CompanyUser
@@ -69,6 +70,20 @@ class ProjectSchemaTests(TestCase):
         spec = ProjectSpecification.model_validate(specification_data())
         self.assertEqual(spec.model_dump()['functional_requirements'][0]['identifier'], 'FR-001')
         self.assertEqual(spec.risks[0].impact, 'high')
+        self.assertIsNone(spec.deadline)
+
+    def test_deadline_accepts_valid_iso_date_and_rejects_invalid_values(self):
+        data = specification_data()
+        data['deadline'] = '2027-01-15'
+        self.assertEqual(
+            ProjectSpecification.model_validate(data).deadline,
+            date(2027, 1, 15),
+        )
+        for invalid in ('2027-1-15', '2027-02-30', 'next month'):
+            with self.subTest(deadline=invalid):
+                data['deadline'] = invalid
+                with self.assertRaises(ValidationError):
+                    ProjectSpecification.model_validate(data)
 
     def test_invalid_identifier_is_rejected(self):
         data = specification_data()
@@ -167,6 +182,7 @@ class ProjectAgentTests(TestCase):
         prompt = load_system_prompt()
         self.assertIn('Agentix Project Planning Specialist', prompt)
         self.assertIn('Never fabricate an ID', prompt)
+        self.assertIn('YYYY-MM-DD', prompt)
 
     def test_all_planning_tools_are_registered(self):
         names = {tool.name for tool in project_tools()}
@@ -199,6 +215,33 @@ class ProjectAgentTests(TestCase):
         result = execute_project_task(None, 'Plan it', agent=fake)
         self.assertTrue(result.success)
         self.assertEqual(result.structured_output.specification.name, 'Commerce Project')
+
+    def test_tool_results_are_correlated_by_tool_call_id(self):
+        structured = ProjectAgentOutput(
+            outcome='specification', response='Plan ready.',
+            specification=specification_data(),
+        )
+        fake = Mock()
+        fake.invoke.return_value = {
+            'messages': [
+                AIMessage(content='', tool_calls=[
+                    {'id': 'call-a', 'name': 'analyze_project_description', 'args': {'description': 'A'}},
+                    {'id': 'call-b', 'name': 'recommend_technology_stack', 'args': {'requirements': 'B'}},
+                ]),
+                ToolMessage(name='recommend_technology_stack', tool_call_id='call-b',
+                            content='{"value": "B"}'),
+                ToolMessage(name='analyze_project_description', tool_call_id='call-a',
+                            content='{"value": "A"}'),
+            ],
+            'structured_response': structured,
+        }
+        result = execute_project_task(None, 'Plan it', agent=fake)
+        executions = {(item.name, item.input.get('description')): item.output
+                      for item in result.tool_executions}
+        self.assertEqual(executions[('analyze_project_description', 'A')]['value'], 'A')
+        executions = {(item.name, item.input.get('requirements')): item.output
+                      for item in result.tool_executions}
+        self.assertEqual(executions[('recommend_technology_stack', 'B')]['value'], 'B')
 
     def test_conversation_continuity_and_revision_are_forwarded(self):
         structured = ProjectAgentOutput(
@@ -279,3 +322,53 @@ class ProjectAgentTests(TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.answer, 'Validated plan.')
         self.assertEqual(result.model_requests, 1)
+
+    def test_wrapped_and_bare_specification_outputs_are_supported(self):
+        payload = {'outcome': 'specification', 'response': 'Ready', 'specification': specification_data()}
+        for output in (payload, {'parsed': payload, 'parsing_error': None}):
+            with self.subTest(wrapped='parsed' in output):
+                draft = Mock()
+                draft.invoke.return_value = {'messages': []}
+                synthesis = Mock()
+                synthesis.invoke.return_value = output
+                result = execute_project_task(None, 'Draft a store', agent=draft, structured_model=synthesis)
+                self.assertTrue(result.success)
+                self.assertEqual(result.structured_output.specification.name, 'Commerce Project')
+
+    def test_nested_model_and_strict_scalar_errors_include_safe_types(self):
+        spec = specification_data()
+        spec['technology_stack'] = ['private-technology-value']
+        spec['milestones'][0]['estimated_duration_weeks'] = '4'
+        draft = Mock()
+        draft.invoke.return_value = {'messages': []}
+        synthesis = Mock()
+        synthesis.invoke.return_value = {
+            'parsed': {'outcome': 'specification', 'response': 'Ready', 'specification': spec},
+            'raw': AIMessage(content='', response_metadata={'finish_reason': 'stop'}),
+        }
+        with self.assertLogs('orchestrator.agents.project.agent', 'WARNING') as logs:
+            result = execute_project_task(None, 'Draft a store', agent=draft, structured_model=synthesis)
+        self.assertFalse(result.success)
+        self.assertIsNone(result.structured_output)
+        self.assertEqual(result.finish_reason, 'stop')
+        self.assertEqual([issue.model_dump() for issue in result.validation_issues], [
+            {'loc': ['specification', 'technology_stack'], 'type': 'model_type',
+             'expected_type': 'TechnologyStack', 'received_type': 'array'},
+            {'loc': ['specification', 'milestones', 0, 'estimated_duration_weeks'], 'type': 'float_type',
+             'expected_type': 'number', 'received_type': 'string'},
+        ])
+        self.assertNotIn('private-technology-value', str(logs.output))
+
+    def test_unknown_output_keys_are_redacted_in_diagnostics(self):
+        spec = specification_data()
+        spec['private-field-name'] = 'private value'
+        draft = Mock()
+        draft.invoke.return_value = {'messages': []}
+        synthesis = Mock()
+        synthesis.invoke.return_value = {
+            'parsed': {'outcome': 'specification', 'response': 'Ready', 'specification': spec},
+        }
+        result = execute_project_task(None, 'Draft a store', agent=draft, structured_model=synthesis)
+        self.assertFalse(result.success)
+        self.assertEqual(result.validation_issues[0].loc, ['specification', '<unknown>'])
+        self.assertNotIn('private-field-name', str(result.validation_issues))

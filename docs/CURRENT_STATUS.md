@@ -2,14 +2,60 @@
 
 Updated: 2026-11-22
 
+## Current project-workflow verification
+
+The Project → Database → PostgreSQL → Matching integration is implemented
+behind the existing Supervisor and approval path. Offline verification on the
+isolated PostgreSQL `test_Agentix` database ran 180 orchestrator tests:
+171 passed and 9 were environment-dependent skips. Django checks, migration
+checks, and diff hygiene passed. The approved workflow now carries a valid,
+explicitly supplied ISO deadline through the Project Agent, mapper, approval,
+and `Project.deadline`. The end-to-end mocked approval/resume test verified
+the saved date and ran the existing XGBoost matcher successfully. Missing or
+invalid dates are clarified before any save or matching. No live provider
+request was made. Temporary business fixtures and this run's checkpoint rows
+were removed; project, requirement, receipt, and checkpoint table counts were
+zero afterward.
+
 ## Implemented
+
+- Supervisor Phase 07 verified live OpenRouter structured replies and
+  stabilized Project Agent failure reporting. Live multi-agent planning
+  and Project specification generation remain open. See
+  [Supervisor Phase 07](orchestrator/SUPERVISOR_PHASE_07.md).
+
+- Supervisor Phase 06 adds an opt-in staff developer console and durable
+  SSE replay for Supervisor executions. See
+  [Supervisor Phase 06](orchestrator/SUPERVISOR_PHASE_06.md).
+
+- Supervisor Phase 05 adds PostgreSQL checkpoints, scoped conversation
+  continuity and mock-only approval interrupts. See
+  [Supervisor Phase 05](orchestrator/SUPERVISOR_PHASE_05.md).
+
+- Supervisor Phase 04 adds explicit real dispatch for four read-only or
+  non-mutating capabilities. See [Supervisor Phase 04](orchestrator/SUPERVISOR_PHASE_04.md)
+  for verification and live limitations.
+
+- Supervisor Phase 03 connects conversational decisions to validated mock
+  execution and deterministic result summaries. See
+  [Supervisor Phase 03](orchestrator/SUPERVISOR_PHASE_03.md).
+
+- Supervisor Phase 02 adds conversational decisions and validated OpenRouter
+  planning through an inspection-only graph entry point. See
+  [Supervisor Phase 02](orchestrator/SUPERVISOR_PHASE_02.md).
+
+- Supervisor Phase 01 validates server-supplied plans and runs mock tasks
+  through LangGraph. It has no live agent dispatch. See
+  [Supervisor Phase 01](orchestrator/SUPERVISOR_PHASE_01.md).
 
 - Agent 02, the independent Project Planning Agent, is implemented under
   `agentix_backend/orchestrator/agents/project/`. It uses the shared Groq
   factory, external Markdown prompt, seven deterministic planning tools, strict
   nested Pydantic outputs, multi-turn input, a standalone console, and
   read-only company skill-taxonomy matching. It cannot save projects or call
-  other agents. Agent 03 and the Supervisor have not started.
+  other agents. The four specialists and Main Supervisor are integrated
+  through the validated workflow described in
+  [`docs/orchestrator/ARCHITECTURE.md`](orchestrator/ARCHITECTURE.md).
 
 - The independent LangChain/Groq Database Agent is implemented under
   `agentix_backend/orchestrator/agents/database/` with a separate Markdown
@@ -17,10 +63,9 @@ Updated: 2026-11-22
   checks, read-only context support, and a reusable standalone approval
   registry. It does not call the ML engine or implement a Supervisor graph.
 
-- The `orchestrator` app has been reset to a minimal Django shell. The
-  pre-existing `ml_engine` source and artifacts are preserved; orchestration
-  agents, planning, execution, chat, and LangGraph/LangChain integrations are
-  not present. The old progress log is historical only.
+- The `orchestrator` app preserves the existing `ml_engine` source and
+  artifacts and provides four specialist agents, validated planning and
+  execution, PostgreSQL checkpoints, and approval-backed project creation.
 - Django project settings now use environment-provided secret and PostgreSQL
   credentials instead of checked-in values; local settings load them from the
   repository-root `.env` file.

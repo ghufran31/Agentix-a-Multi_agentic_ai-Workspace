@@ -1,5 +1,316 @@
 # Development log
 
+## 2026-11-23 — Dokploy production deployment preparation
+
+Added an ARM64-targeted Django and PostgreSQL/pgvector Compose stack, an
+isolated production settings profile, persistent checkpoint provisioning,
+and an operations guide. See the [Dokploy deployment guide](deployment/DOKPLOY.md).
+
+## 2026-11-22 — Groq Supervisor root structured-output failure
+
+Recovered a root Pydantic `model_type` error from the failed Flutter
+checkpoint. Changed the Groq Supervisor response format to one typed
+function call and added safe parser-stage diagnostics. See
+[the provider guide](orchestrator/LLM_PROVIDERS.md#supervisor-groq-structured-decision-troubleshooting).
+
+## 2026-11-22 — Supervisor clarification continuity
+
+Preserved the original request and user-provided deadlines in real
+conversation checkpoints. Kept project approval on the authenticated graph
+interrupt and retained safe plan-validation details in checkpoints.
+See [multi-turn deadlines and approval](orchestrator/SUPERVISOR_PHASE_06.md#multi-turn-deadlines-and-write-approval).
+
+## 2026-11-22 — Disposable Supervisor console write testing
+
+Added an opt-in console write flag with live `test_Agentix` checks on the
+ORM, checkpoints and journal. Added project approval review and creation
+result projections, prepared five synthetic ranking candidates, and verified
+22 workflow and console tests without live providers. See
+[the browser test guide](orchestrator/SUPERVISOR_PHASE_06.md#disposable-browser-test-for-project-creation).
+
+## 2026-11-22 — Supervisor invalid-plan diagnostics
+
+The prior single live Supervisor response reached the static plan validator
+and returned `invalid_plan`; its proposed plan was not persisted, so the exact
+rejected rule cannot be reconstructed. No further provider requests were made.
+
+Static validation now emits server-side structured diagnostics with a stable
+rule and error code, and safe task/capability/dependency/reference identifiers
+where available. Pydantic failures include bounded field locations and error
+types, never input values. Public planning and execution errors remain generic.
+The Supervisor prompt now documents the valid
+`project.plan → database.create_project → matching.rank` chain and its
+top-level output references.
+
+Offline verification confirms that the three-task plan passes real-adapter
+planning validation; the Project Agent `structured_output` resolves into the
+strict creation schema, the create output's `project_id` resolves into
+matching, and the trusted deadline remains `2027-03-30`. Approval capability
+visibility and the `projects.write`, `projects.read`, and `workforce.read`
+permissions remain enforced.
+
+Verification:
+- Full orchestrator suite: 186 tests, 177 passed and 9 skipped.
+- Django system checks passed.
+- `git diff --check` passed.
+- No live provider requests or business database writes were made.
+
+## 2026-11-22 — Single live Supervisor workflow attempt
+
+The Supervisor deadline guard now accepts unambiguous month-name dates and
+normalizes them to ISO form; the explicit `March 30, 2027` case is covered by
+the planner tests. Before creating fixtures, the live runner forced Django
+and checkpoint connections to `test_Agentix` and verified both against the
+loopback PostgreSQL server. The repository's default `Agentix` connection was
+only inspected read-only.
+
+Exactly one user request was sent to Groq (`openai/gpt-oss-120b`). The
+Supervisor returned `planning_error` with `invalid_plan` after one response
+(1,808 input tokens, 920 output tokens; finish reason `stop`). The structured
+plan failed static validation, but the current planner reports only the
+generic code, so the specific rejected constraint and a Pydantic location
+were not available. No provider HTTP error or rate-limit diagnostic was
+reported. The Project Agent did not run; no approval was reached, no project
+or requirements were saved, and matching was not invoked. No retry or second
+live request was made.
+
+The temporary owner, company, membership, department, 12 skills, five
+employees, profiles, and assignments were removed. Exact-ID checks found no
+fixture rows; the run's checkpoint, write, and blob rows were zero, and
+project/requirement/receipt totals returned to baseline. Focused planner
+regressions passed (19 tests); the previously completed full offline suite
+remains 171 passed and 9 skipped.
+
+## 2026-11-22 — Project deadline flow and offline verification
+
+Added an optional ISO date deadline to the Project Agent specification,
+validated its calendar value, and instructed the agent never to infer or
+invent one. The Supervisor binds the deadline only from an explicit user
+request, passes it through Project planning and the approved create input,
+and rejects a specification that does not match that trusted date. For a
+new project-and-matching request without a valid date, it asks before
+dispatching agents or opening a write approval. For existing-project matching,
+the date is loaded from the authorized company-scoped project record.
+The mapper and approved creation transaction save it to `Project.deadline`;
+the date is also included in the approval review and durable idempotency
+payload. No business schema or matching features changed.
+
+Verification on disposable PostgreSQL `test_Agentix`:
+- Full orchestrator suite: 180 tests run, 171 passed, 9 environment-dependent
+  tests skipped.
+- Django system checks passed.
+- `makemigrations --check --dry-run` reported no changes.
+- `git diff --check` passed.
+- Approved mock workflow persisted the requested deadline and completed
+  matching with the existing XGBoost model.
+- Missing and invalid deadlines were clarified before Project Agent
+  execution or database writes.
+- No live provider calls were made; project, requirement, receipt, and
+  checkpoint table counts were zero after the run.
+
+## 2026-11-22 — Project workflow verification
+
+Verified the Supervisor project-creation path on the local, isolated
+PostgreSQL `test_Agentix` database. Corrected the approval-required capability
+visibility, retained trusted execution identity through the write adapter,
+required a matching approval record at real dispatch, accepted the validated
+Project Agent output envelope for dependent task references, and enforced
+company-scoped skill lookup instead of trusting generated taxonomy claims.
+Requested skill and role names are saved only in the approved requirement text
+fields; no business schema or matching artifacts changed.
+
+Added PostgreSQL coverage for approval pause/resume/rejection, no pre-approval
+write, retry and concurrent duplicate recovery, transaction rollback,
+conflicting payloads, capability authorization, matching handoff, and
+checkpoint cleanup. The matching handoff reaches the saved project ID, but
+the existing matcher refuses inference when `Project.deadline` is absent. The
+Project Agent schema and requested scenario provide no explicit deadline, so
+no date was synthesized and the real-provider test was not started.
+
+Verification:
+- 169 orchestrator tests passed; 9 environment-dependent tests were skipped.
+- Django system check passed.
+- Migration check and disposable-database migration plan showed no pending
+  changes.
+- `git diff --check` passed.
+- PostgreSQL identity was `test_Agentix` on local loopback; all temporary
+  business rows and the test's checkpoint rows were absent after cleanup.
+- Zero live LLM requests and zero provider tokens were used.
+
+## 2026-11-22 — Project creation and employee matching workflow
+
+Added `database.create_project` to the Supervisor capability registry with a
+Pydantic project specification input and strict creation output. A deterministic
+mapper converts supported Project Agent fields into `projects` and
+`project_requirements` records. It resolves existing company skills, reports
+unresolved skills, and preserves the complete specification in workflow results.
+
+Real persistent execution now supports approval gates. Approval review payloads
+show the project name, description, roles, skills, saved fields, and persistence
+status. Rejection and expiration block dependent matching.
+
+Added `ProjectCreationReceipt` with a company-plus-operation unique constraint.
+The operation identity covers company, thread, execution, and task. The stored
+canonical mapping enables duplicate recovery and conflicting-payload rejection.
+The project and requirements are committed atomically in the same transaction
+as the receipt.
+
+Verification:
+- 160 orchestrator tests passed; 9 environment-dependent tests were skipped.
+- Django system check passed.
+- Migration check reported no pending model changes.
+- `git diff --check` passed.
+- No real provider call was made during implementation.
+
+## 2026-11-22 — Supervisor simplification refactor
+
+Made the agent registry the source of capability schemas and real adapter
+bindings. Removed the duplicated `CONTRACTS` table from real dispatch, added
+registry-bound real adapters, and replaced the Project Agent's index-based
+tool-result pairing with `tool_call_id` correlation.
+
+Extracted Supervisor initialization, execution, finishing, observation,
+scheduling, and routing into dedicated graph modules while preserving the
+public builder functions and mock, real, planning, and persistent modes.
+Updated the orchestrator architecture documentation.
+
+Verification after the refactor:
+- 156 orchestrator tests passed; 9 environment-dependent tests were skipped.
+- Django `manage.py check` passed.
+- `makemigrations --check --dry-run` reported no changes.
+- `git diff --check` passed.
+- No migrations or business database writes were added.
+
+The exactly-one live Supervisor preflight did not dispatch an API request.
+The isolated PostgreSQL `test_Agentix` database contained no active owner
+company membership fixture, and creating such a fixture would have written
+business data. The live test was stopped before provider invocation.
+
+## 2026-11-22 — Parallel Project synthesis rejection
+
+Recovered HTTP 413 and Groq `rate_limit_exceeded` from the failed Project
+branch of a real parallel run. Preserved that specific classification in the
+adapter and console, and reproduced it alongside successful mocked Research.
+See the [Project Agent guide](orchestrator/PROJECT_AGENT.md#parallel-flutter-request).
+
+## 2026-11-22 — Project structured-output shape and field diagnostics
+
+Distinguished LangChain response envelopes from bare Project specifications.
+Enforced strict scalar validation on first parse and added schema-bounded
+location and type diagnostics to logs, checkpoints, and console events.
+See the [Project Agent guide](orchestrator/PROJECT_AGENT.md#structured-output-field-diagnostics).
+
+## 2026-11-22 — Project Agent diagnostic propagation
+
+Recovered Pydantic `model_type` and finish reason `stop` from the repeated
+Flutter request. The console execution API and new SSE entries now preserve
+the safe Project error details from the checkpoint. See the
+[Project Agent guide](orchestrator/PROJECT_AGENT.md#repeated-flutter-request).
+
+## 2026-11-22 — Flutter Project Agent validation failure
+
+Recovered the failing live console checkpoint and confirmed the Project
+Agent received its model responses before failing output validation. Added
+safe parser categories, finish reasons, and console stage reporting.
+The historical response shape could not be reconstructed. See the
+[Project Agent guide](orchestrator/PROJECT_AGENT.md#flutter-console-failure-diagnosis).
+
+## 2026-11-22 — Gemini and Supervisor provider fallback
+
+Added the Gemini Developer API integration and configurable planning-only
+fallback between Groq, Gemini, and OpenRouter. All 148 distinct orchestrator
+tests passed across disposable PostgreSQL runs. No live provider calls were
+made. See [LLM provider configuration](orchestrator/LLM_PROVIDERS.md).
+
+## 2026-11-22 — Supervisor real-mode stabilization
+
+OpenRouter returned two valid decisions. Groq rate-limited Project Agent
+synthesis after the tool-planning phase. Added safe stage diagnostics and
+validated the read-only console path offline. Across disposable PostgreSQL
+runs, 134 distinct tests passed. See
+[Supervisor Phase 07](orchestrator/SUPERVISOR_PHASE_07.md).
+
+## 2026-11-22 — Phase 04 stabilization
+
+Traced Research failure to Groq HTTP 400 `tool_use_failed` after a successful
+Tavily search and source read. Separated structured synthesis from research
+tool use, fixed equivalent root URL grounding, and preserved safe failure
+diagnostics. Live Research returned a verified Python documentation citation.
+The Project adapter passed a complete mocked specification run, but its one
+live test returned no valid specification. All 112 orchestrator tests passed.
+See [Phase 04 verification](orchestrator/SUPERVISOR_PHASE_04.md#stabilization-verification)
+for usage and limitations.
+
+## 2026-11-22 — Supervisor Phase 04 real specialist adapters
+
+Added an explicit real execution mode with four fixed adapters, active
+membership checks, output validation, mapped errors, and provider usage
+metadata. The existing mock and planning-only entry points remain.
+
+All 107 orchestrator tests passed on in-memory SQLite, including nine adapter
+tests. Django checks and diff hygiene passed. The controlled ORM and
+XGBoost integration passed on disposable fixtures. The Research integration
+made one Tavily search and received two Groq responses but produced no
+validated findings. No OpenRouter requests or production database writes
+were made. See [Supervisor Phase 04](orchestrator/SUPERVISOR_PHASE_04.md).
+
+## 2026-11-22 — Supervisor Phase 03 integrated mock execution
+
+Connected planner decisions to the existing validated mock scheduler and
+added typed result aggregation and a deterministic assistant reply. Prior
+results are kept separate from the current run. Fixed an integrated state
+schema mismatch that prevented a mock preflight rejection from surfacing
+its final decision.
+
+All 98 orchestrator tests passed on in-memory SQLite, including 10 new
+integrated tests. The focused Supervisor run passed all 43 tests. Django
+checks and diff hygiene passed. No providers, real specialist agents, or
+PostgreSQL writes were used. See
+[Supervisor Phase 03](orchestrator/SUPERVISOR_PHASE_03.md).
+
+## 2026-11-22 — Supervisor Phase 02 conversational planner
+
+Added a planning-only LangGraph entry point, five typed conversation outcomes,
+an authorized capability catalog, and independent validation of proposed plans.
+The original Phase 01 mock executor remains available. Prior messages and results
+remain in state, and only bounded history and result metadata enter the prompt.
+
+All 88 orchestrator tests passed on in-memory SQLite, including 13 Phase 02 and
+20 Phase 01 tests. Django checks and diff hygiene passed. The first live
+`openrouter/free` request returned HTTP 429 and a structured planning error.
+The second scenario was skipped. No specialists ran and no external database
+was written to. See [Supervisor Phase 02](orchestrator/SUPERVISOR_PHASE_02.md).
+
+## 2026-11-22 — Supervisor Phase 01 foundation
+
+Added the reusable mock-only LangGraph, typed state and task results,
+trusted runtime context, specialist capability registry, and deterministic
+plan validation. Thread barriers proved independent tasks overlapped
+and their validated outputs reached a dependent task after fan-in.
+
+The orchestrator passed 73 tests with in-memory SQLite, including 55
+existing regressions. The final focused foundation suite passed 20 tests.
+Django checks, the PostgreSQL migration dry run, dependency checks, and
+diff hygiene passed. No live agents, provider calls, or PostgreSQL writes
+were used. See [Supervisor Phase 01](orchestrator/SUPERVISOR_PHASE_01.md).
+
+## 2026-11-22 — OpenRouter provider
+
+Added the official LangChain OpenRouter adapter to the shared factory. Groq
+remains the default. Independent Supervisor and specialist settings select
+provider and model. OpenRouter accepts explicitly free routes, requires
+requested capabilities, and surfaces sanitized errors without retrying.
+OpenRouter structured results use tool arguments validated by Pydantic.
+
+OpenRouter lists Nemotron 3 Ultra and 3.5 Lightning free variants as
+tool-capable without native JSON schema. Use `openrouter/free` as an
+opt-in smoke-test candidate until a specific model passes live checks.
+No OpenRouter credential was configured, so no live requests were sent.
+Fifteen offline tests passed, including five factory tests. Mocked HTTP
+responses exercised the actual SDK for chat, Pydantic task plans, tool
+arguments, usage metadata, and HTTP 429/404/503 without retries.
+Dependency and diff checks passed. No database writes were performed.
+
 ## 2026-11-22 — Agent 05 Tavily search
 
 Replaced DDGS with Tavily Basic through HTTPX. The search tool preserves
@@ -208,6 +519,23 @@ for authorized approval and resume from the saved task records. See
 Added checkpoint injection, an ownership-gated conversation service, and
 safe restoration of completed turns. Interrupted executions require
 recovery. See [Phase 04 progress](orchestrator/PROGRESS.md).
+
+## 2026-11-22 — Supervisor developer console and SSE
+
+Added staff-only Django conversation and approval endpoints, an HTML console,
+and a replayable event journal driven by LangGraph updates. Verified all nine
+Phase 06 tests and all 122 prior orchestrator tests across disposable
+PostgreSQL runs. See [Supervisor Phase 06](orchestrator/SUPERVISOR_PHASE_06.md)
+for startup, event contracts, and recovery limits.
+
+## 2026-11-22 — Supervisor Phase 05 PostgreSQL checkpoints and approvals
+
+Added signed, company-scoped conversation threads, PostgreSQL checkpoint
+storage and single-use LangGraph approval interrupts for mock execution.
+The isolated PostgreSQL run passed all 122 orchestrator tests, including
+10 Phase 05 cases. Real dispatch remains read-only. See
+[Supervisor Phase 05](orchestrator/SUPERVISOR_PHASE_05.md) for setup,
+verification and recovery limits.
 
 ## 2026-11-22 — Dependency-aware Supervisor execution
 

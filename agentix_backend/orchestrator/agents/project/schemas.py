@@ -1,14 +1,29 @@
+import re
+from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class StrictModel(BaseModel):
-    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True, strict=True)
 
 
 RequirementSource = Literal['user', 'recommended', 'assumed']
 Priority = Literal['must', 'should', 'could']
+
+
+def parse_iso_deadline(value):
+    if value is None:
+        return None
+    if isinstance(value, date) and not isinstance(value, datetime):
+        return value
+    if not isinstance(value, str) or re.fullmatch(r'\d{4}-\d{2}-\d{2}', value) is None:
+        raise ValueError('deadline must use YYYY-MM-DD format.')
+    try:
+        return date.fromisoformat(value)
+    except ValueError as exc:
+        raise ValueError('deadline must be a valid calendar date.') from exc
 
 
 class ProjectFeature(StrictModel):
@@ -114,6 +129,7 @@ class ProjectSpecification(StrictModel):
     name: str = Field(min_length=1, max_length=255)
     description: str = Field(min_length=1, max_length=5000)
     project_type: str = Field(min_length=1, max_length=150)
+    deadline: date | None = None
     features: list[ProjectFeature] = Field(min_length=1, max_length=100)
     functional_requirements: list[FunctionalRequirement] = Field(
         min_length=1, max_length=150
@@ -130,6 +146,11 @@ class ProjectSpecification(StrictModel):
     risks: list[ProjectRisk] = Field(default_factory=list, max_length=50)
     missing_information: list[MissingInformation] = Field(default_factory=list, max_length=50)
     limitations: list[str] = Field(default_factory=list, max_length=30)
+
+    @field_validator('deadline', mode='before')
+    @classmethod
+    def validate_deadline(cls, value):
+        return parse_iso_deadline(value)
 
 
 class ClarificationOutcome(StrictModel):
@@ -166,6 +187,13 @@ class PlanningToolExecution(StrictModel):
     output: dict = Field(default_factory=dict)
 
 
+class ProjectValidationIssue(StrictModel):
+    loc: list[str | int]
+    type: str
+    expected_type: str
+    received_type: str
+
+
 class ProjectAgentResult(StrictModel):
     answer: str
     success: bool = True
@@ -173,5 +201,11 @@ class ProjectAgentResult(StrictModel):
     tool_names: list[str] = Field(default_factory=list)
     tool_executions: list[PlanningToolExecution] = Field(default_factory=list)
     validation_errors: list[str] = Field(default_factory=list)
+    validation_issues: list[ProjectValidationIssue] = Field(default_factory=list, max_length=12)
     model_calls: int = Field(default=0, ge=0)
     model_requests: int = Field(default=0, ge=0)
+
+    failure_stage: Literal['tool_planning', 'structured_synthesis', 'output_validation'] | None = None
+    provider_status: int | None = None
+    provider_code: str | None = None
+    finish_reason: Literal['stop', 'length', 'content_filter', 'tool_calls'] | None = None

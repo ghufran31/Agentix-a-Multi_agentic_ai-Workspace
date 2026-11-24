@@ -11,6 +11,72 @@ from orchestrator.tools.research.webpage_tools import PageText, public_destinati
 
 
 class ResearchTests(SimpleTestCase):
+    @patch('orchestrator.agents.research.agent.build_research_summary_model')
+    @patch('orchestrator.agents.research.agent.build_research_agent')
+    def test_fetched_evidence_triggers_separate_structured_synthesis(self, build, summarize):
+        url = 'https://docs.python.org/3/'
+        messages = [HumanMessage(content='Find sources'), AIMessage(content='', usage_metadata={
+            'input_tokens': 4, 'output_tokens': 2, 'total_tokens': 6,
+        }), ToolMessage(name='read_webpage', tool_call_id='read', content=json.dumps({
+            'sources': [dict(title='Official', url=url, excerpt='Python docs', provider='webpage')],
+        }))]
+
+        def states(*args, **kwargs):
+            yield {'messages': messages}
+            self.fail('A successful page should hand off before the next tool-enabled call.')
+
+        build.return_value.stream.side_effect = states
+        summarize.return_value.invoke.return_value = {
+            'raw': AIMessage(content='', usage_metadata={
+                'input_tokens': 5, 'output_tokens': 2, 'total_tokens': 7,
+            }),
+            'parsed': {'answer': 'Official docs', 'findings': [{'claim': 'Docs', 'urls': [url]}]},
+            'parsing_error': None,
+        }
+        result = execute_research('Find sources')
+        self.assertEqual(result.status, 'ok')
+        self.assertEqual(str(result.sources[0].url), url)
+        self.assertEqual((result.model_responses, result.tokens), (2, 13))
+        self.assertIn(url, summarize.return_value.invoke.call_args.args[0][-1].content)
+
+    @patch.dict('os.environ', {'TAVILY_API_KEY': 'fixture-key'})
+    @patch('orchestrator.tools.research.search_tools.httpx.post')
+    def test_citation_with_omitted_root_slash_uses_exact_verified_source(self, post):
+        post.return_value.json.return_value = {'results': [{
+            'title': 'Official docs', 'url': 'https://docs.python.org', 'content': 'Documentation',
+        }]}
+        payload = search_web(query='Python documentation')
+        self.assertEqual(payload['sources'][0]['url'], 'https://docs.python.org/')
+        agent = Mock()
+        agent.invoke.return_value = {'messages': [
+            HumanMessage(content='Find sources'),
+            ToolMessage(name='search_web', tool_call_id='1', content=json.dumps(payload)),
+            AIMessage(content=json.dumps({'answer': 'Official docs', 'findings': [
+                {'claim': 'Official docs', 'urls': ['https://docs.python.org']},
+            ]})),
+        ]}
+        result = execute_research('Find sources', agent=agent)
+        self.assertEqual(result.status, 'ok')
+        self.assertEqual(result.summary.findings[0].urls, ['https://docs.python.org/'])
+
+    def test_parse_and_grounding_diagnostics_are_distinct(self):
+        agent = Mock()
+        for content, code in (
+            ('Not JSON', 'invalid_summary'),
+            (json.dumps({'answer': 'Claim', 'findings': [{'claim': 'Claim',
+                         'urls': ['https://example.org/other']}]}), 'ungrounded_citation'),
+        ):
+            agent.invoke.return_value = {'messages': [
+                HumanMessage(content='Find sources'),
+                ToolMessage(name='search_web', tool_call_id='1', content=json.dumps({
+                    'sources': [dict(title='Example', url='https://example.org/',
+                                     excerpt='Evidence', provider='tavily')],
+                })),
+                AIMessage(content=content),
+            ]}
+            result = execute_research('Find sources', agent=agent)
+            self.assertEqual(result.errors, [code])
+            self.assertEqual(result.sources, [])
     @patch('orchestrator.agents.research.agent.build_research_agent')
     def test_failed_search_stops_before_next_model_turn(self, build):
         question = HumanMessage(content='Find sources')

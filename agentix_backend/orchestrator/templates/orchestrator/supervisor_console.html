@@ -1,0 +1,49 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agentix Supervisor Console</title>
+  <link rel="stylesheet" href="{% static 'orchestrator/supervisor_console.css' %}">
+  <script defer src="{% static 'orchestrator/supervisor_console.js' %}"></script>
+</head>
+<body data-api="{% url 'supervisor_console:conversations' %}">
+  <main>
+    <header>
+      <h1>Supervisor Console</h1>
+      <p>{{ mode|capfirst }} mode{% if test_writes %} · test_Agentix writes with approval{% endif %}</p>
+    </header>
+    <section class="toolbar" aria-label="Conversations">
+      <label for="conversation">Conversation</label>
+      <select id="conversation"></select>
+      <button id="new" type="button">New conversation</button>
+    </section>
+    <p id="feedback" role="status"></p>
+    <div class="columns">
+      <section aria-labelledby="chat-title">
+        <h2 id="chat-title">Chat</h2>
+        <ol id="history" aria-label="Message history"></ol>
+        <form id="composer">
+          {% csrf_token %}
+          <label for="message">Message</label>
+          <textarea id="message" required maxlength="4000" rows="4"
+            {% if mode == 'mock' %}placeholder="Try demo, demo approval, or demo failure"{% endif %}></textarea>
+          {% if mode == 'real' %}
+            <label for="project">Project ID (optional)</label>
+            <input id="project" type="number" min="1" step="1">
+          {% endif %}
+          <button type="submit">Send</button>
+        </form>
+      </section>
+      <section aria-labelledby="execution-title">
+        <h2 id="execution-title">Execution</h2>
+        <p id="status" aria-live="polite">Idle</p>
+        <div id="approval"></div>
+        <details open><summary>Plan and task results</summary><div id="plan"></div></details>
+        <details><summary>Events</summary><ol id="events"></ol></details>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
