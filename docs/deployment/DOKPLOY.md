@@ -164,3 +164,25 @@ Django's production profile passed the three security and readiness tests,
 static collection, and a checkpoint recovery test on a disposable local
 PostgreSQL database. The deployment check reported only the documented
 HSTS preload warning. No production deployment was performed.
+
+## Seed a demo company after deployment
+
+Create or register a dedicated active Django user named `demo-owner` first.
+This account must have no owned company. Then open the deployed **web**
+container terminal in Dokploy and run:
+
+```sh
+python manage.py seed_agentix_demo --owner demo-owner --confirm-demo-seed
+```
+
+The command creates one synthetic company for that owner with 10 departments,
+1,000 employees and AI profiles, company skills and assignments, and 20
+projects with requirements and future deadlines. Synthetic email addresses
+use the reserved `.invalid` domain. The command uses the bundled XGBoost
+artifact to select supported profile and project categories.
+
+For a smaller demo, add `--departments 4 --employees 100 --projects 8
+--seed 42`. Options apply on first creation. Re-running the command for
+the same demo owner leaves all existing rows intact. If the owner already
+owns a different company, the command exits without writing. Seeding is
+manual and transactional.

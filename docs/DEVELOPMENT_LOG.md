@@ -1,5 +1,11 @@
 # Development log
 
+## 2026-11-28 — Synthetic demo company seeding
+
+Added an opt-in Django command for an isolated demo company, workforce,
+and projects with model-compatible matching requirements. See the
+[Dokploy seeding instructions](deployment/DOKPLOY.md#seed-a-demo-company-after-deployment).
+
 ## 2026-11-23 — Dokploy production deployment preparation
 
 Added an ARM64-targeted Django and PostgreSQL/pgvector Compose stack, an
